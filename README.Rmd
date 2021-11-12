@@ -1,0 +1,356 @@
+---
+title: "Mutualism promotes range expansion in both ant and plant partners"
+author: "Pooja Nathan and Megan Frederickson"
+date: "14/07/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# How does mutualism affect ant and plant range sizes? 
+This R Markdown document describes the dataset and code for:
+
+Nathan P, Frederickson ME. In prep. Mutualism promotes range expansion in both ant and plant partners. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The first step is to load packages
+
+```{r packages, warning=FALSE, message=FALSE}
+library(olsrr)
+library(ape)
+library(geiger)
+library(nlme)
+library(phytools)
+#library(plotrix)
+library(caper)
+library(tidyverse)
+library(cowplot)
+#library(devtools)
+```
+
+## Analysis for effect of EFNs on legume range size
+
+```{r merge EFN and legume datasets, warning=FALSE, message=FALSE}
+range <- read.csv("legume_invasion_data.csv") #Read in legume range data
+EFN <- read.csv("EFN_fromwhole.csv") #Read in EFN data
+colnames(EFN) <- c("Species", "EFN") #Fix column names
+range <- merge(EFN, range, by='Species', all.x=FALSE, all.y=TRUE) #Merge legume range and EFN data
+range$EFN <- ifelse(is.na(range$EFN), 0, range$EFN) #Make NAs zeros for EFNs
+```
+
+## Make figures
+
+## Number of introduced ranges
+
+```{r number introduced ranges, warning=FALSE, message=FALSE}
+range$fixer <- as.factor(range$fixer) #Make factor
+range$EFN <- as.factor(range$EFN) #Make factor
+hues <- c("#af8dc3", "#7fbf7b")
+
+#EFNs
+fig1a <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(num_introduced+1)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Plant has EFNs") + 
+  ylab("Introduced ranges (no. + 1)")+
+  stat_summary(aes(x=EFN, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  scale_y_log10()
+fig1a
+save_plot("Fig1a.pdf", fig1a, base_width=3, base_height=4)
+
+#Nodules
+fig1b <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(num_introduced+1)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Nodules") + 
+  ylab("Introduced ranges (no. + 1)")+
+  stat_summary(aes(x=fixer, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  scale_y_log10()
+
+fig1 <- plot_grid(fig1a, fig1b, labels="AUTO")
+fig1
+save_plot("Fig1.pdf", fig1)
+```
+
+## Introduced range area
+
+```{r introduced range area, warning=FALSE, message=FALSE}
+#EFNs
+fig2a <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(total_area_introduced/1e+6)+1), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Extrafloral nectaries") + 
+  ylab("Introduced range area (sq. km + 1)")+
+  stat_summary(aes(x=EFN, y=(total_area_introduced/1e+6)+1), fun="mean", geom="crossbar", width=0.25)+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  scale_y_log10()
+
+#Nodules
+fig2b <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(total_area_introduced/1e+6)+1), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Nodules") + 
+  ylab("Introduced range area (sq. km + 1)")+
+  stat_summary(aes(x=fixer, y=(total_area_introduced/1e+6)+1), fun="mean", geom="crossbar", width=0.25)+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  scale_y_log10()
+
+fig2 <- plot_grid(fig2a, fig2b, labels="AUTO")
+fig2
+save_plot("Fig2.pdf", fig2)
+```
+
+## Native range area
+
+```{r native range area, message=FALSE, warning=FALSE}
+#EFNs
+fig3a <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(total_area_native/1e+6)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Extrafloral nectaries") + 
+  ylab("Native range area (sq. km)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
+  scale_y_log10()
+
+#Nodules
+fig3b <- ggplot(data=range)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(total_area_native/1e+6)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Nodules") + 
+  ylab("Native range area (sq. km)")+
+  stat_summary(aes(x=fixer, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  scale_y_log10()
+
+fig3 <- plot_grid(fig3a, fig3b, labels="AUTO")
+fig3
+save_plot("Fig3.pdf", fig3)
+```
+
+## Preparing dataset for pgls analysis
+
+```{r PGLS, warning=FALSE, message=FALSE}
+zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
+phyint <- intersect(zanne$tip.label, range$Species)  
+phydiff <- setdiff(zanne$tip.label, range$Species)
+pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
+
+range_efn_pgls <- range[range$Species %in% phyint, ]
+range_efn_pgls <- range_efn_pgls[complete.cases(range_efn_pgls), ] #removing NA elements
+```
+
+## Statistical models
+
+```{r models, warning=FALSE, message=FALSE}
+#PGLS of number of introduced ranges as response variable with both interactions, 
+#interaction and other covariates
+#p1 <- gls(log(num_introduced + 1) ~ EFN*fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species), method = "ML", data = range_efn_pgls) 
+#summary(p1)
+
+#EFN significant positive, fixer and interaction not significant
+
+#PGLS with both, covariates and no interaction (dropping interaction because it was non-signif.)
+p2 <- gls(log(num_introduced + 1) ~ EFN+fixer +
+            total_area_native + abs_lat_native + annual + uses_num_uses, 
+            correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species), 
+            method = "ML", data = range_efn_pgls) 
+summary(p2)
+plot(p2)
+#EFN significant positive, fixer not significant, slightly lower AIC 
+
+#anova(p1, p2) #both models are comparable
+
+#Diagnostics on model 2
+
+plot(p2, resid(., type="n")~fitted(.), main="Normalized Residuals v Fitted Values",
+abline=c(0,0))
+res <- resid(p2, type="n")
+qqnorm(res)
+qqline(res)
+
+p1 <- glm(num_introduced ~ EFN + fixer + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_efn_pgls)
+summary(p1)
+
+#they look ok!
+
+#Repeating for area introduced
+#PGLS with both EFN presence and fixer, interaction and covariates
+#p3 <- gls(log((total_area_introduced/1e+6)+1) ~ EFN*fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species), method = "ML", data = range_efn_pgls) 
+#summary(p3)
+#EFN significant positive, fixer and interaction not significant
+
+#PGLS with both, covariates and no interaction
+#hist(log((range_efn_pgls$total_area_introduced/1e+6)+1))
+
+#range_efn_pgls$introduced <- ifelse(range_efn_pgls$total_area_introduced == 0, 0, 1) #Introduced Y/N as binary variable
+
+#binary <- glm(introduced~EFN+fixer+total_area_native+abs_lat_native+annual+uses_num_uses, family="binomial", data=range_efn_pgls)
+#summary(binary)
+#plot(binary)
+
+p4 <- gls(log((total_area_introduced/1e+6)+1) ~ EFN + fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species), method = "ML", data = subset(range_efn_pgls, total_area_introduced > 0)) 
+summary(p4)
+plot(p4)
+#EFN significant positive, fixer not significant, slightly lower AIC 
+
+#anova(p3, p4) #both models are comparable
+
+#Diagnostics on model 4
+
+plot(p4, resid(., type="n")~fitted(.), main="Normalized Residuals v Fitted Values",
+abline=c(0,0))
+res <- resid(p4, type="n")
+qqnorm(res)
+qqline(res)
+
+#Residual plot looks weird, but better than before
+
+#Repeating for native area
+#PGLS with both EFN presence and fixer, interaction and covariates
+#p5 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*fixer + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species), method = "ML", data = range_efn_pgls)
+#summary(p5)
+#all effects non-significant
+
+#PGLS with both EFN presence and fixer, covariates and no interaction
+p6 <- gls(log((total_area_native/1e+6) + 1)~ EFN+fixer +abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Species),  method = "ML", data = range_efn_pgls) 
+summary(p6)
+#all effects non-significant
+
+#anova(p5, p6) #both models are comparable, p6 slightly better
+
+plot(p6, resid(., type="n")~fitted(.), main="Normalized Residuals v Fitted Values",
+abline=c(0,0))
+res <- resid(p6, type="n")
+qqnorm(res)
+qqline(res)
+```
+
+# Do EFN-visiting ants have higher range size?
+
+```{r efns and ants, warning=FALSE, message=FALSE}
+###Native range size
+antarea <- read.csv("Ant_species_native range.csv")
+antefn <- read.csv("Species_EFN_Data.csv")
+efn_area <- merge(antarea, antefn, by.y = "Phy", all = FALSE)
+efn_area$EFN <- as.factor(efn_area$EFN)
+
+fig4a <- ggplot(data=efn_area)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=total.area), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Visits extrafloral nectaries") + 
+  ylab("Native range area (sq. km)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=total.area), fun="mean", geom="crossbar", width=0.25)+
+  scale_y_log10()
+
+### Invaded range size
+efn_inv <- read.csv("invaded_area_ant_species.csv")
+antefn <- read.csv("Species_EFN_Data.csv")
+colnames(efn_inv) <- c("Phy", "SD", "LogArea")
+efn_area_inv <- merge(efn_inv, antefn, by = "Phy", all = FALSE)
+efn_area_inv$EFN <- as.factor(efn_area_inv$EFN)
+
+fig4b <- ggplot(data=efn_area_inv)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(10^LogArea+1)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Ant visits EFNs") + 
+  ylab("Introduced range area (sq. km + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=(10^LogArea+1)), fun="mean", geom="crossbar", width=0.25)+
+  scale_y_log10()
+fig4b
+save_plot("Fig4b.pdf", fig4b, base_width=3, base_height=4)
+
+fig4 <- plot_grid(fig4a, fig4b, labels="AUTO")
+fig4
+save_plot("Fig4.pdf", fig4)
+```
+
+```{r efns and ants models, warning=FALSE, message=FALSE}
+#Native range size
+ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
+phy_int <- intersect(ant_tree$tip.label, efn_area$Phy)
+phy_diff <- setdiff(ant_tree$tip.label, efn_area$Phy)
+pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff)) #pruning tree to contain only tips in the dataset
+
+efn_area_phy <- efn_area[efn_area$Phy %in% phy_int, ] #dataset for pgls
+#write.csv(efn_area_phy, "Ant_list_EFN.csv")
+efn_area_phy <- efn_area_phy[match(pruned_ant_tree$tip.label, efn_area_phy$Phy),]
+
+#PGLS model
+a1 <- gls(LogArea ~ EFN, 
+                correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
+                method = "ML", data = efn_area_phy) 
+summary(a1) #Significant positive effect of EFNs
+
+#Diagnostic plots
+plot(a1, resid(., type="n")~fitted(.), main="Normalized Residuals v Fitted Values",
+abline=c(0,0))
+res <- resid(a1, type="n")
+qqnorm(res)
+qqline(res)
+
+### Invaded range size
+phy_int <- intersect(ant_tree$tip.label, efn_area_inv$Phy)
+phy_diff <- setdiff(ant_tree$tip.label, efn_area_inv$Phy)
+pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff))
+
+efn_area_inv_phy <- efn_area_inv[efn_area_inv$Phy %in% phy_int, ] #dataset for pgls
+efn_area_inv_phy <- efn_area_inv_phy[match(pruned_ant_tree$tip.label, efn_area_inv_phy$Phy),]
+
+#PGLS model
+a2 <- gls(LogArea ~ EFN, 
+          correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
+          method = "ML", data = efn_area_inv_phy) 
+summary(a2)
+
+## Diagnostic plots
+plot(a2, resid(., type="n")~fitted(.), main="Normalized Residuals v Fitted Values",
+abline=c(0,0))
+res <- resid(a2, type="n")
+qqnorm(res)
+qqline(res)
+```
+
+
+
+
+
