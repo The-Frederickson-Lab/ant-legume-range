@@ -1,118 +1,511 @@
-Phy,total.area,LogArea
-Acromyrmex_octospinosus,117997.3122,5.071872115
-Amblyopone_australis,269073.3497,5.429870685
-Anochetus_ghilianii,493663.7919,5.693431275
-Anochetus_mayri,147120.3924,5.167672875
-Anoplolepis_gracilipes,6975141.134,6.843552999
-Aphaenogaster_senilis,2616.793023,3.417769373
-Brachyponera_chinensis,3199528.178,6.505085939
-Brachyponera_sennaarensis,9513340.53,6.978333043
-Camponotus_compressus,164.0847609,2.215068249
-Camponotus_hova,3829.644984,3.583158516
-Camponotus_novogranadensis,147120.3924,5.167672875
-Camponotus_pennsylvanicus,9034.221375,3.955890728
-Camponotus_planatus,1079276.816,6.033132848
-Camponotus_sericeus,4576.449391,3.660528664
-Camponotus_tortuganus,244199.9057,5.387745492
-Cardiocondyla_batesii,5092.681198,3.70694649
-Cardiocondyla_emeryi,24314743.81,7.385869698
-Cardiocondyla_kagutsuchi,1242398.493,6.094260916
-Cardiocondyla_mauritanica,6677599.206,6.824620349
-Cardiocondyla_minutior,12657266.84,7.102339936
-Cardiocondyla_nigra,3948.252661,3.596404937
-Cardiocondyla_nuda,24157.78811,4.383057168
-Cardiocondyla_obscurior,7145243.347,6.854017024
-Cardiocondyla_parvinoda,513327.8129,5.710394796
-Cardiocondyla_venustula,2524270.427,6.402135879
-Crematogaster_irritabilis,132314.5167,5.121607495
-Crematogaster_scutellaris,393010.163,5.594403781
-Crematogaster_sordidula,357402.819,5.553157974
-Cyphomyrmex_rimosus,1893692.882,6.277309547
-Doleromyrma_darwiniana,268475.548,5.428904738
-Dorylus_fulvus,8683.243917,3.938682001
-Ectatomma_ruidum,7801.23693,3.892163468
-Hypoponera_opacior,24797.60789,4.394409788
-Hypoponera_punctatissima,20096495.14,7.303120322
-Lasius_alienus,318961.6037,5.503738406
-Lasius_emarginatus,194000.4644,5.28780277
-Lasius_grandis,7482.254468,3.874032474
-Lasius_niger,8515920.698,6.930231609
-Leptogenys_falcigera,1664857.9,6.221377171
-Leptogenys_maxillosa,5488246.072,6.739433575
-Linepithema_humile,26201462.5,7.418325533
-Linepithema_iniquum,366925.09,5.564577409
-Linepithema_micans,21266.38548,4.327693682
-Messor_capitatus,2876308.693,6.458835494
-Messor_minor,7482.254468,3.874032474
-Monomorium_exiguum,8922.326182,3.950478096
-Monomorium_fieldi,268475.548,5.428904738
-Monomorium_floricola,30751501.19,7.487866321
-Monomorium_pharaonis,40261787.67,7.604893054
-Monomorium_subopacum,3447111.983,6.537455392
-Monomorium_sydneyense,268475.548,5.428904738
-Myrmecia_brevinoda,268475.548,5.428904738
-Myrmica_kotokui,1620.740403,3.209713459
-Myrmica_lobulicornis,7482.254468,3.874032474
-Myrmica_rubra,4536030.841,6.656675999
-Myrmica_scabrinodis,945150.2538,5.975500855
-Myrmica_specioides,1119448.392,6.049004077
-Nylanderia_bourbonica,5383218.97,6.731042046
-Nylanderia_fulva,7185940.647,6.856483626
-Nylanderia_pubens,478232.5312,5.679639115
-Nylanderia_steinheili,687832.2627,5.837482543
-Nylanderia_vaga,1585728.057,6.20022871
-Ochetellus_glaber,1702139.056,6.230995037
-Odontomachus_bauri,7801.23693,3.892163468
-Odontomachus_haematodus,2797517.02,6.446772737
-Odontomachus_ruginodis,582470.3832,5.765273848
-Odontomachus_simillimus,402652.6861,5.604930601
-Odontomachus_troglodytes,593573.4792,5.773474488
-Pachycondyla_harpax,171088.36,5.233220463
-Paratrechina_longicornis,61919739.34,7.791829119
-Pheidole_bilimeki,7482.254468,3.874032474
-Pheidole_fervens,2844484.016,6.454003498
-Pheidole_indica,17903694.91,7.252942669
-Pheidole_megacephala,31725355.8,7.501406501
-Pheidole_pallidula,401309.5421,5.603479486
-Pheidole_parva,2345198.5,6.370179608
-Pheidole_pubiventris,119504.576,5.077384535
-Pheidole_punctatissima,293907.8975,5.468211256
-Pheidole_susannae,75374.90025,4.87722675
-Plagiolepis_alluaudi,16801972.6,7.225360272
-Platythyrea_parallela,25637.01717,4.408867494
-Platythyrea_punctata,951977.5529,5.978626708
-Polyrhachis_dives,1149.568923,3.060535015
-Ponera_exotica,7107.871512,3.851739569
-Pseudomyrmex_cubaensis,123744.5825,5.092526195
-Pseudomyrmex_elongatus,147120.3924,5.167672875
-Pseudomyrmex_gracilis,830038.7576,5.919098372
-Rhytidoponera_chalybaea,268489.8939,5.428927943
-Rhytidoponera_metallica,271453.8789,5.433696052
-Solenopsis_geminata,22507595.44,7.3523291
-Solenopsis_globularia,1138442.911,6.056311257
-Solenopsis_invicta,7837364.974,6.894170072
-Solenopsis_papuana,1745262.27,6.2418607
-Solenopsis_terricola,147120.3924,5.167672875
-Strumigenys_emmae,10712345.32,7.029884564
-Strumigenys_godeffroyi,4242311.837,6.627602589
-Strumigenys_gundlachi,159959.551,5.204010176
-Strumigenys_maxillaris,599708.8868,5.777940484
-Strumigenys_membranifera,23081497.47,7.363263981
-Strumigenys_rogeri,4698457.373,6.671955291
-Tapinoma_melanocephalum,35692954.11,7.552582494
-Tapinoma_nigerrimum,395626.956,5.597285875
-Tapinoma_sessile,343596.6353,5.536048902
-Technomyrmex_albipes,19037901.13,7.279619067
-Technomyrmex_difficilis,8628228.65,6.935921645
-Technomyrmex_vitiensis,3979675.789,6.599847693
-Temnothorax_unifasciatus,244186.791,5.387722168
-Tetramorium_bicarinatum,39923919.1,7.601233167
-Tetramorium_caldarium,14121662.59,7.149885831
-Tetramorium_impurum,2616.793023,3.417769373
-Tetramorium_lanuginosum,27155713.41,7.433861217
-Tetramorium_sericeiventre,595618.6694,5.774968302
-Tetramorium_simillimum,31314354.76,7.495743467
-Tetraponera_allaborans,32452.34426,4.511246074
-Tetraponera_rufonigra,486.231921,2.686843467
-Vollenhovia_emeryi,248790.6706,5.395834091
-Wasmannia_auropunctata,6472266.554,6.811056395
+Phy,total.area.introduced,Stratum,LogArea.introduced
+Acromyrmex_coronatus,35607.34397,Epigaeic,4.55153958
+Acromyrmex_lobicornis,320854.5999,Epigaeic,5.50630827
+Acromyrmex_lundii,35607.34397,Epigaeic,4.55153958
+Acromyrmex_octospinosus,117997.3122,Epigaeic,5.071872115
+Acromyrmex_octospinosus cubanus,110220.0982,Epigaeic,5.042260794
+Adelomyrmex_myops,7801.23693,Epigaeic & Hypogaeic,3.892163468
+Amblyopone_australis,269073.3497,Epigaeic & Hypogaeic,5.429870685
+Anochetus_emarginatus,12839.15863,Arboreal & Epigaeic,4.108536565
+Anochetus_ghilianii,493663.7919,Arboreal & Epigaeic,5.693431275
+Anochetus_graeffei,7533675.295,Arboreal & Epigaeic,6.877006898
+Anochetus_mayri,434174.597,Arboreal & Epigaeic,5.63766441
+Anochetus_sedilloti,3171309.096,Arboreal & Epigaeic,6.501238573
+Anonychomyrma_itinerans,268475.548,Arboreal & Epigaeic,5.428904738
+Anoplolepis_gracilipes,8350394.634,Epigaeic,6.921707
+Anoplolepis_steingroeveri gertrudae,4576.449391,Epigaeic,3.660528664
+Aphaenogaster_gemella,544558.6544,Epigaeic,5.736044664
+Aphaenogaster_iberica,12574.93567,Epigaeic,4.099505772
+Aphaenogaster_longiceps,16654.44205,Epigaeic,4.221530088
+Aphaenogaster_ovaticeps,251283.8896,Epigaeic,5.400164646
+Aphaenogaster_senilis,94283.1142,Epigaeic,4.974433919
+Aphaenogaster_splendida,562603.3436,Epigaeic,5.750202309
+Aphaenogaster_subterranea,593087.2472,Epigaeic,5.773118586
+Azteca_constructor,318961.6037,Arboreal,5.503738406
+Azteca_flavigaster,318961.6037,Arboreal,5.503738406
+Brachymyrmex_aphidicola,149937.3102,Arboreal & Epigaeic,5.175909716
+Brachymyrmex_australis,361979.2684,Arboreal & Epigaeic,5.558683698
+Brachymyrmex_cordemoyi,4255288.772,Arboreal & Epigaeic,6.628929037
+Brachymyrmex_heeri,1546536.19,Arboreal & Epigaeic,6.189360087
+Brachymyrmex_minutus,270864.9748,Arboreal & Epigaeic,5.432752851
+Brachymyrmex_obscurior,3740433.422,Arboreal & Epigaeic,6.572921929
+Brachymyrmex_patagonicus,4981657.463,Arboreal & Epigaeic,6.697373862
+Brachymyrmex_termitophilus,685352.5845,Arboreal & Epigaeic,5.835914055
+Brachyponera_chinensis,3573585.439,Epigaeic,6.55310417
+Brachyponera_luteipes,286301.5429,Epigaeic,5.456823688
+Brachyponera_obscurans,4576.449391,Epigaeic,3.660528664
+Brachyponera_sennaarensis,9513340.53,Epigaeic,6.978333043
+Camponotus_aegyptiacus,35607.34397,Arboreal & Epigaeic,4.55153958
+Camponotus_aeneopilosus,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_atriceps,671477.0491,Arboreal & Epigaeic,5.827031173
+Camponotus_barbaricus,539465.9732,Arboreal & Epigaeic,5.731964057
+Camponotus_bishamon,36261.8317,Arboreal & Epigaeic,4.559449738
+Camponotus_brevis,318961.6037,Arboreal & Epigaeic,5.503738406
+Camponotus_britteni,1049080.544,Arboreal & Epigaeic,6.020808833
+Camponotus_bugnioni,616361.2107,Arboreal & Epigaeic,5.7898353
+Camponotus_canescens,35607.34397,Arboreal & Epigaeic,4.55153958
+Camponotus_chloroticus,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_chromaiodes,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_compressus,268639.6328,Arboreal & Epigaeic,5.429170085
+Camponotus_conspicuus zonatus,8116.822738,Arboreal & Epigaeic,3.909386062
+Camponotus_essigi,5130.98077,Arboreal & Epigaeic,3.710200387
+Camponotus_exiguoguttatus,16654.44205,Arboreal & Epigaeic,4.221530088
+Camponotus_fabricator,195.911953,Arboreal & Epigaeic,2.292060934
+Camponotus_fallax,71827.42508,Arboreal & Epigaeic,4.856290298
+Camponotus_fastigatus,35607.34397,Arboreal & Epigaeic,4.55153958
+Camponotus_floridanus,27061.58485,Arboreal & Epigaeic,4.432353227
+Camponotus_hemichlaena,36261.8317,Arboreal & Epigaeic,4.559449738
+Camponotus_herculeanus,584531.5147,Arboreal & Epigaeic,5.766807931
+Camponotus_hova,3829.644984,Arboreal & Epigaeic,3.583158516
+Camponotus_irritans,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_irritans carinifer,27022.17176,Arboreal & Epigaeic,4.43172025
+Camponotus_itoi,16654.44205,Arboreal & Epigaeic,4.221530088
+Camponotus_keihitoi,36261.8317,Arboreal & Epigaeic,4.559449738
+Camponotus_maculatus,918323.3931,Arboreal & Epigaeic,5.962995648
+Camponotus_mitis,35607.34397,Arboreal & Epigaeic,4.55153958
+Camponotus_mus,203087.3576,Arboreal & Epigaeic,5.307682889
+Camponotus_nawai,36261.8317,Arboreal & Epigaeic,4.559449738
+Camponotus_nearcticus,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_nigroaeneus,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_novaeboracensis,36301.24479,Arboreal & Epigaeic,4.559921517
+Camponotus_novaehollandiae,268475.548,Arboreal & Epigaeic,5.428904738
+Camponotus_novogranadensis,391307.1834,Arboreal & Epigaeic,5.592517821
+Camponotus_nylanderi,539465.9732,Arboreal & Epigaeic,5.731964057
+Camponotus_obscuripes,52916.27375,Arboreal & Epigaeic,4.723589255
+Camponotus_pennsylvanicus,620627.3209,Arboreal & Epigaeic,5.79283089
+Camponotus_perrisii nigeriensis,244186.791,Arboreal & Epigaeic,5.387722168
+Camponotus_planatus,1131538.602,Arboreal & Epigaeic,6.053669374
+Camponotus_planatus continentis,147120.3924,Arboreal & Epigaeic,5.167672875
+Camponotus_rectangularis,35607.34397,Arboreal & Epigaeic,4.55153958
+Camponotus_sayi,27022.17176,Arboreal & Epigaeic,4.43172025
+Camponotus_sericeiventris rex,136998.277,Arboreal & Epigaeic,5.136715105
+Camponotus_sericeus,4576.449391,Arboreal & Epigaeic,3.660528664
+Camponotus_sexguttatus,471009.2847,Arboreal & Epigaeic,5.673029468
+Camponotus_singularis,36261.8317,Arboreal & Epigaeic,4.559449738
+Camponotus_snellingi,244186.791,Arboreal & Epigaeic,5.387722168
+Camponotus_sylvaticus,279794.135,Arboreal & Epigaeic,5.446838607
+Camponotus_tergestinus,27022.17176,Arboreal & Epigaeic,4.43172025
+Camponotus_thoracicus,318961.6037,Arboreal & Epigaeic,5.503738406
+Camponotus_tortuganus,512675.4537,Arboreal & Epigaeic,5.709842524
+Camponotus_ustus,318961.6037,Arboreal & Epigaeic,5.503738406
+Camponotus_vagus,62629.51573,Arboreal & Epigaeic,4.796779054
+Camponotus_variegatus,1082838.092,Arboreal & Epigaeic,6.034563525
+Camponotus_werthi,7117.1343,Arboreal & Epigaeic,3.852305161
+Cardiocondyla_batesii,5092.681198,Epigaeic,3.70694649
+Cardiocondyla_breviscapa,308966.1496,Epigaeic,5.489910901
+Cardiocondyla_britteni,244186.791,Epigaeic,5.387722168
+Cardiocondyla_emeryi,24287604.62,Epigaeic,7.385384684
+Cardiocondyla_fajumensis,3948.252661,Epigaeic,3.596404937
+Cardiocondyla_itsukii,200145.2662,Epigaeic,5.301345323
+Cardiocondyla_kagutsuchi,1242398.493,Epigaeic,6.094260916
+Cardiocondyla_mauritanica,6677599.206,Epigaeic,6.824620349
+Cardiocondyla_minutior,11695960.61,Epigaeic,7.068035897
+Cardiocondyla_nigra,3948.252661,Epigaeic,3.596404937
+Cardiocondyla_nuda,328240.6801,Epigaeic,5.516192404
+Cardiocondyla_obscurior,8483680.747,Epigaeic,6.928584317
+Cardiocondyla_strigifrons,154373.3022,Epigaeic,5.188572194
+Cardiocondyla_tjibodana,2554775.394,Epigaeic,6.407352725
+Cardiocondyla_venustula,2524270.427,Epigaeic,6.402135879
+Cardiocondyla_wroughtonii,14249458.99,Epigaeic,7.153798376
+Carebara_affinis,267938.3316,Epigaeic & Hypogaeic,5.428034849
+Carebara_diversa,547732.4666,Epigaeic & Hypogaeic,5.738568484
+Cataglyphis_nodus,8316.99827,Epigaeic,3.919966611
+Cephalotes_curvistriatus,35607.34397,Arboreal,4.55153958
+Cephalotes_pusillus,35607.34397,Arboreal,4.55153958
+Chelaner_antarcticus,196.5772509,Epigaeic,2.293533257
+Colobopsis_mississippiensis,268475.548,Arboreal,5.428904738
+Colobopsis_truncata,591137.0966,Arboreal,5.771688214
+Crematogaster_algirica,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_ashmeadi,330002.6356,Arboreal & Epigaeic,5.518517408
+Crematogaster_bicolor,12491.7291,Arboreal & Epigaeic,4.096622557
+Crematogaster_carinata,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_coarctata,16654.44205,Arboreal & Epigaeic,4.221530088
+Crematogaster_crinosa,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_curvispinosa,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_egidyi,36261.8317,Arboreal & Epigaeic,4.559449738
+Crematogaster_inermis,913991.2024,Arboreal & Epigaeic,5.960942015
+Crematogaster_irritabilis,132314.5167,Arboreal & Epigaeic,5.121607495
+Crematogaster_lineolata,16654.44205,Arboreal & Epigaeic,4.221530088
+Crematogaster_nawai,16654.44205,Arboreal & Epigaeic,4.221530088
+Crematogaster_obscurata,1166864.013,Arboreal & Epigaeic,6.067020246
+Crematogaster_rochai,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_rogenhoferi,35607.34397,Arboreal & Epigaeic,4.55153958
+Crematogaster_scutellaris,1219530.341,Arboreal & Epigaeic,6.08619261
+Crematogaster_sordidula,409664.605,Arboreal & Epigaeic,5.612428443
+Crematogaster_steinheili,39.41308581,Arboreal & Epigaeic,1.595640439
+Crematogaster_subdentata,2239962.317,Arboreal & Epigaeic,6.350240712
+Crematogaster_teranishii,36261.8317,Arboreal & Epigaeic,4.559449738
+Crematogaster_terminalis,244186.791,Arboreal & Epigaeic,5.387722168
+Crematogaster_torosa,35607.34397,Arboreal & Epigaeic,4.55153958
+Cryptopone_testacea,2978.330857,Hypogaeic,3.473972941
+Cylindromyrmex_whymperi,7801.23693,Epigaeic & Hypogaeic,3.892163468
+Cyphomyrmex_rimosus,1910347.325,Epigaeic,6.281112335
+Cyphomyrmex_salvini,25.00536106,Epigaeic,1.39803313
+Diacamma_indicum,244186.791,Epigaeic,5.387722168
+Diacamma_rugosum,285129.9901,Epigaeic,5.455042899
+Diacamma_vagans,329567.0617,Epigaeic,5.5179438
+Doleromyrma_darwiniana,268475.548,Epigaeic,5.428904738
+Dolichoderus_lutosus,35607.34397,Arboreal & Epigaeic,4.55153958
+Dolichoderus_quadripunctatus,16654.44205,Arboreal & Epigaeic,4.221530088
+Dolichoderus_thoracicus,1480341.916,Arboreal & Epigaeic,6.170362036
+Dorylus_fulvus,799433.1067,Epigaeic & Hypogaeic,5.90278213
+Ectatomma_brunneum,35607.34397,Epigaeic,4.55153958
+Ectatomma_ruidum,7801.23693,Epigaeic,3.892163468
+Erromyrma_latinodis,2953306.107,Epigaeic,6.470308463
+Formica_fusca,268475.548,Epigaeic,5.428904738
+Formica_obscuripes,1513562.714,Epigaeic,6.180000421
+Formica_paralugubris,1870965.533,Epigaeic,6.272065787
+Formica_rufa,1420.695368,Epigaeic,3.152500965
+Formica_rufibarbis,403453.0567,Epigaeic,5.60579301
+Formica_subpolita,16654.44205,Epigaeic,4.221530088
+Gnamptogenys_porcata,16654.44205,Epigaeic,4.221530088
+Gnamptogenys_regularis,244186.791,Epigaeic,5.387722168
+Gnamptogenys_striatula,78474.75762,Epigaeic,4.894729983
+Gnamptogenys_triangularis,1170950.093,Epigaeic,6.068538385
+Hypoponera_boerorum,313856.6821,Epigaeic & Hypogaeic,5.496731379
+Hypoponera_confinis,286946.6192,Epigaeic & Hypogaeic,5.457801112
+Hypoponera_eduardi,6850463.316,Epigaeic & Hypogaeic,6.835719945
+Hypoponera_elliptica,17066.06439,Epigaeic & Hypogaeic,4.23213338
+Hypoponera_ergatandria,6818602.032,Epigaeic & Hypogaeic,6.833695344
+Hypoponera_gibbinota,244186.791,Epigaeic & Hypogaeic,5.387722168
+Hypoponera_opaciceps,7302265.564,Epigaeic & Hypogaeic,6.863457623
+Hypoponera_opaciceps pampana,1912984.123,Epigaeic & Hypogaeic,6.281711366
+Hypoponera_opacior,343759.2116,Epigaeic & Hypogaeic,5.536254345
+Hypoponera_punctatissima,33600798,Epigaeic & Hypogaeic,7.526349592
+Hypoponera_punctatissima indifferens,593087.2472,Epigaeic & Hypogaeic,5.773118586
+Hypoponera_ragusai,14986842.48,Epigaeic & Hypogaeic,7.175710143
+Hypoponera_trigona,168.5467547,Epigaeic & Hypogaeic,2.226720395
+Hypoponera_zwaluwenburgi,16654.44205,Epigaeic & Hypogaeic,4.221530088
+Iridomyrmex_anceps,2440200.255,Epigaeic,6.387425468
+Iridomyrmex_chasei,268475.548,Epigaeic,5.428904738
+Iridomyrmex_cyaneus,268475.548,Epigaeic,5.428904738
+Iridomyrmex_minor,41.57126669,Epigaeic,1.618793258
+Iridomyrmex_purpureus,268475.548,Epigaeic,5.428904738
+Iridomyrmex_rufoniger,268475.548,Epigaeic,5.428904738
+Iridomyrmex_suchieri,268517.1193,Epigaeic,5.428971979
+Iridomyrmex_victorianus,268475.548,Epigaeic,5.428904738
+Lasius_alienus,335616.0458,Epigaeic & Hypogaeic,5.525842716
+Lasius_americanus,16654.44205,Epigaeic & Hypogaeic,4.221530088
+Lasius_citrinus,8316.99827,Epigaeic & Hypogaeic,3.919966611
+Lasius_emarginatus,229607.8084,Epigaeic & Hypogaeic,5.360986653
+Lasius_flavus,285129.9901,Epigaeic & Hypogaeic,5.455042899
+Lasius_fuliginosus,16654.44205,Epigaeic & Hypogaeic,4.221530088
+Lasius_grandis,1227807.944,Epigaeic & Hypogaeic,6.089130439
+Lasius_interjectus,16654.44205,Epigaeic & Hypogaeic,4.221530088
+Lasius_japonicus,38429.87469,Epigaeic & Hypogaeic,4.584668968
+Lasius_lasioides,279794.135,Epigaeic & Hypogaeic,5.446838607
+Lasius_neglectus,8406546.952,Epigaeic & Hypogaeic,6.924617643
+Lasius_neoniger,318961.6037,Epigaeic & Hypogaeic,5.503738406
+Lasius_niger,8801050.688,Epigaeic & Hypogaeic,6.944534522
+Lasius_productus,36261.8317,Epigaeic & Hypogaeic,4.559449738
+Lasius_sakagamii,37882.5721,Epigaeic & Hypogaeic,4.578439458
+Lepisiota_bipartita,4576.449391,Epigaeic,3.660528664
+Lepisiota_canescens,593087.2472,Epigaeic,5.773118586
+Lepisiota_capensis,638222.0359,Epigaeic,5.804971795
+Lepisiota_frauenfeldi,4466964.948,Epigaeic,6.650012545
+Lepisiota_frauenfeldi kantarensis,7482.254468,Epigaeic,3.874032474
+Lepisiota_incisa,318961.6037,Epigaeic,5.503738406
+Lepisiota_nigra,539465.9732,Epigaeic,5.731964057
+Lepisiota_obtusa,35607.34397,Epigaeic,4.55153958
+Lepisiota_spinisquama,3829.644984,Epigaeic,3.583158516
+Lepisiota_syriaca,129677.6643,Epigaeic,5.11286518
+Leptogenys_falcigera,1664857.9,Epigaeic & Hypogaeic,6.221377171
+Leptogenys_maxillosa,5488246.072,Epigaeic & Hypogaeic,6.739433575
+Leptogenys_pavesii,596282.0064,Epigaeic & Hypogaeic,5.775451704
+Leptomyrmex_wiburdi,268475.548,Arboreal,5.428904738
+Linepithema_angulatum,361829.0174,Epigaeic,5.558503393
+Linepithema_dispertitum,35607.34397,Epigaeic,4.55153958
+Linepithema_humile,31740940.55,Epigaeic,7.501619792
+Linepithema_iniquum,1784065.494,Epigaeic,6.251410794
+Linepithema_leucomelas,83976.57525,Epigaeic,4.924158159
+Linepithema_micans,21266.38548,Epigaeic,4.327693682
+Liometopum_microcephalum,268475.548,Epigaeic,5.428904738
+Lioponera_longitarsus,13996541.01,Arboreal & Epigaeic & Hypogaeic,7.146020721
+Mayriella_abstinens,268475.548,Arboreal & Epigaeic & Hypogaeic,5.428904738
+Mayriella_spinosior,268475.548,Arboreal & Epigaeic & Hypogaeic,5.428904738
+Melophorus_hirsutus,268475.548,Epigaeic,5.428904738
+Meranoplus_bicolor,387980.124,Epigaeic & Hypogaeic,5.588809478
+Meranoplus_castaneus,35607.34397,Epigaeic & Hypogaeic,4.55153958
+Meranoplus_minor,14.34586733,Epigaeic & Hypogaeic,1.15672681
+Mesoponera_testacea,620109.419,Epigaeic,5.792468328
+Messor_capitatus,2876308.693,Epigaeic,6.458835494
+Messor_lusitanicus,403453.0567,Epigaeic,5.60579301
+Messor_minor,7482.254468,Epigaeic,3.874032474
+Messor_structor,1403002.92,Epigaeic,6.147058575
+Monomorium_andrei,5092.681198,Arboreal & Epigaeic,3.70694649
+Monomorium_atomum,3829.644984,Arboreal & Epigaeic,3.583158516
+Monomorium_atomum cooperi,998732.739,Arboreal & Epigaeic,5.999449287
+Monomorium_bicolor,1083298.887,Arboreal & Epigaeic,6.034748297
+Monomorium_carbonarium,5930709.571,Arboreal & Epigaeic,6.773106657
+Monomorium_clavicorne,2026646.168,Arboreal & Epigaeic,6.306777932
+Monomorium_dichroum,707909.464,Arboreal & Epigaeic,5.849977718
+Monomorium_exiguum,8922.326182,Arboreal & Epigaeic,3.950478096
+Monomorium_fieldi,268475.548,Arboreal & Epigaeic,5.428904738
+Monomorium_floricola,34612723.34,Arboreal & Epigaeic,7.539235771
+Monomorium_holothir,1955714.508,Arboreal & Epigaeic,6.291305457
+Monomorium_indicum,356061.6506,Arboreal & Epigaeic,5.551525201
+Monomorium_intrudens,2718297.832,Arboreal & Epigaeic,6.434297039
+Monomorium_liliuokalanii,72563.79075,Arboreal & Epigaeic,4.860719962
+Monomorium_minimum,52261.78602,Arboreal & Epigaeic,4.718184247
+Monomorium_monomorium,9630461.58,Arboreal & Epigaeic,6.983647103
+Monomorium_pharaonis,80340839.6,Arboreal & Epigaeic,7.904936366
+Monomorium_salomonis,2132134.587,Arboreal & Epigaeic,6.328814615
+Monomorium_subopacum,3447111.983,Arboreal & Epigaeic,6.537455392
+Monomorium_sydneyense,268475.548,Arboreal & Epigaeic,5.428904738
+Monomorium_trageri,674969.0881,Arboreal & Epigaeic,5.829283884
+Myrmecia_brevinoda,268475.548,Epigaeic,5.428904738
+Myrmecia_gulosa,268475.548,Epigaeic,5.428904738
+Myrmecia_nigrocincta,268475.548,Epigaeic,5.428904738
+Myrmelachista_ramulorum,147120.3924,Arboreal,5.167672875
+Myrmica_kotokui,1620.740403,Epigaeic,3.209713459
+Myrmica_lobulicornis,7482.254468,Epigaeic,3.874032474
+Myrmica_punctiventris,39.41308581,Epigaeic,1.595640439
+Myrmica_rubra,4804506.389,Epigaeic,6.681648775
+Myrmica_rubra neolaevinodis,136998.277,Epigaeic,5.136715105
+Myrmica_ruginodis,268475.548,Epigaeic,5.428904738
+Myrmica_scabrinodis,945150.2538,Epigaeic,5.975500855
+Myrmica_specioides,1119448.392,Epigaeic,6.049004077
+Myrmicaria_natalensis,35607.34397,Arboreal & Epigaeic,4.55153958
+Myrmoteras_indicum,70931.66059,Epigaeic,4.850840127
+Neoponera_theresiae,244186.791,Arboreal & Epigaeic,5.387722168
+Neoponera_unidentata,78474.75762,Arboreal & Epigaeic,4.894729983
+Nesomyrmex_echinatinodis,35607.34397,Arboreal,4.55153958
+Notoncus_ectatommoides,268475.548,Epigaeic,5.428904738
+Nylanderia_amia,159207.9456,Epigaeic,5.201964738
+Nylanderia_bourbonica,7846536.441,Epigaeic,6.894677996
+Nylanderia_braueri,244186.791,Epigaeic,5.387722168
+Nylanderia_braueri donisthorpei,244186.791,Epigaeic,5.387722168
+Nylanderia_clandestina,17385.43675,Epigaeic,4.240185605
+Nylanderia_flavipes,4489916.27,Epigaeic,6.652238242
+Nylanderia_fulva,8375735.834,Epigaeic,6.923022971
+Nylanderia_glabrior,272989.6426,Epigaeic,5.43614617
+Nylanderia_guatemalensis,1191562.268,Epigaeic,6.076116742
+Nylanderia_guatemalensis itinerans,96084.33194,Epigaeic,4.982652575
+Nylanderia_jaegerskioeldi,6879679.623,Epigaeic,6.837568214
+Nylanderia_parvula,16654.44205,Epigaeic,4.221530088
+Nylanderia_pubens,504211.1288,Epigaeic,5.702612427
+Nylanderia_sharpii,16654.44205,Epigaeic,4.221530088
+Nylanderia_steinheili,1042401.21,Epigaeic,6.018034907
+Nylanderia_tasmaniensis,268475.548,Epigaeic,5.428904738
+Nylanderia_vaga,1621335.401,Epigaeic,6.209872865
+Nylanderia_vividula,17981029.34,Epigaeic,7.25481455
+Ochetellus_glaber,1737746.4,Arboreal & Epigaeic,6.239986397
+Ochetellus_glaber clarithorax,147120.3924,Arboreal & Epigaeic,5.167672875
+Ochetellus_vinsoni,4576.449391,Arboreal & Epigaeic,3.660528664
+Odontomachus_bauri,7801.23693,Epigaeic,3.892163468
+Odontomachus_brunneus,35607.34397,Epigaeic,4.55153958
+Odontomachus_haematodus,2849778.806,Epigaeic,6.454811152
+Odontomachus_monticola,35607.34397,Epigaeic,4.55153958
+Odontomachus_ruginodis,582470.3832,Epigaeic,5.765273848
+Odontomachus_simillimus,687782.6762,Epigaeic,5.837451233
+Odontomachus_troglodytes,593573.4792,Epigaeic,5.773474488
+Oecophylla_longinoda,35607.34397,Arboreal,4.55153958
+Oecophylla_smaragdina,383212.1373,Arboreal,5.583439256
+Ooceraea_biroi,3866236.712,Hypogaeic,6.58728844
+Orectognathus_antennatus,268475.548,Arboreal & Epigaeic,5.428904738
+Pachycondyla_harpax,171088.36,Epigaeic,5.233220463
+Pachycondyla_solitaria,16654.44205,Epigaeic,4.221530088
+Paraparatrechina_minutula,288635.8931,Epigaeic,5.460350336
+Parasyscia_sylvicola,486.231921,Arboreal & Epigaeic,2.686843467
+Paratrechina_longicornis,73801049.81,Epigaeic,7.86806254
+Parvaponera_darwinii,27354.56053,Hypogaeic,4.437029742
+Pheidole_anastasii,4076731.353,Epigaeic,6.610312093
+Pheidole_barbata,16654.44205,Epigaeic,4.221530088
+Pheidole_bilimeki,2005685.553,Epigaeic,6.302262846
+Pheidole_dentata,35607.34397,Epigaeic,4.55153958
+Pheidole_dossena,35607.34397,Epigaeic,4.55153958
+Pheidole_fervens,3227384.279,Epigaeic,6.508850679
+Pheidole_fervida,16654.44205,Epigaeic,4.221530088
+Pheidole_flavens,831286.052,Epigaeic,5.919750494
+Pheidole_gertrudae,244186.791,Epigaeic,5.387722168
+Pheidole_guineensis,82177.57232,Epigaeic,4.914753307
+Pheidole_harrisonfordi,35607.34397,Epigaeic,4.55153958
+Pheidole_hyatti,16654.44205,Epigaeic,4.221530088
+Pheidole_indica,18451964.59,Epigaeic,7.266042613
+Pheidole_lamellinoda,3829.644984,Epigaeic,3.583158516
+Pheidole_longiscapa,35607.34397,Epigaeic,4.55153958
+Pheidole_megacephala,34570439.04,Epigaeic,7.538704895
+Pheidole_moerens,128076.6515,Epigaeic,5.107469965
+Pheidole_navigans,2372129.867,Epigaeic,6.375138462
+Pheidole_nodus,554992.5363,Epigaeic,5.744287143
+Pheidole_obscurithorax,1362395.824,Epigaeic,6.134303304
+Pheidole_oceanica,268475.548,Epigaeic,5.428904738
+Pheidole_pallidula,763138.5595,Epigaeic,5.882603398
+Pheidole_parva,2786577.894,Epigaeic,6.445071188
+Pheidole_proxima,268475.548,Epigaeic,5.428904738
+Pheidole_pubiventris,119504.576,Epigaeic,5.077384535
+Pheidole_punctatissima,952185.4919,Epigaeic,5.97872156
+Pheidole_punctulata,244186.791,Epigaeic,5.387722168
+Pheidole_radoszkowskii,35607.34397,Epigaeic,4.55153958
+Pheidole_rugosula,268475.548,Epigaeic,5.428904738
+Pheidole_sculpturata welgelegenensis,244186.791,Epigaeic,5.387722168
+Pheidole_sexspinosa,268475.548,Epigaeic,5.428904738
+Pheidole_sospes,147120.3924,Epigaeic,5.167672875
+Pheidole_subarmata,35607.34397,Epigaeic,4.55153958
+Pheidole_susannae,110982.2442,Epigaeic,5.045253503
+Pheidole_umbonata,268475.548,Epigaeic,5.428904738
+Pheidole_vafra,35607.34397,Epigaeic,4.55153958
+Pheidole_variabilis,268475.548,Epigaeic,5.428904738
+Pheidole_vigilans,1309688.094,Epigaeic,6.117167879
+Plagiolepis_alluaudi,18407929.19,Epigaeic,7.265004935
+Plagiolepis_exigua,5968984.895,Epigaeic,6.77590048
+Plagiolepis_pallescens,354568.9477,Epigaeic,5.549700698
+Plagiolepis_pygmaea,354568.9477,Epigaeic,5.549700698
+Plagiolepis_schmitzii,1176662.927,Epigaeic,6.07065207
+Platythyrea_parallela,294112.5652,Arboreal,5.468513579
+Platythyrea_punctata,951977.5529,Arboreal,5.978626708
+Pogonomyrmex_occidentalis,16654.44205,Epigaeic,4.221530088
+Polyrhachis_ammon,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_atropos,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_dives,53411.35494,Arboreal & Epigaeic,4.727633595
+Polyrhachis_erato,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_femorata,285129.9901,Arboreal & Epigaeic,5.455042899
+Polyrhachis_hector,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_nigrita,35607.34397,Arboreal & Epigaeic,4.55153958
+Polyrhachis_rastellata,7399.97179,Arboreal & Epigaeic,3.869230064
+Polyrhachis_rufifemur,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_saevissima argentea,16654.44205,Arboreal & Epigaeic,4.221530088
+Polyrhachis_semiaurata,268475.548,Arboreal & Epigaeic,5.428904738
+Polyrhachis_thrinax,35607.34397,Arboreal & Epigaeic,4.55153958
+Polyrhachis_trapezoidea,268475.548,Arboreal & Epigaeic,5.428904738
+Ponera_bableti,1867.602345,Epigaeic & Hypogaeic,3.271284411
+Ponera_coarctata,59521.85571,Epigaeic & Hypogaeic,4.774676463
+Ponera_exotica,7107.871512,Epigaeic & Hypogaeic,3.851739569
+Ponera_leae,285583.1837,Epigaeic & Hypogaeic,5.455732631
+Ponera_loi,286279.559,Epigaeic & Hypogaeic,5.45679034
+Ponera_swezeyi,1825025.354,Epigaeic & Hypogaeic,6.261268902
+Ponera_testacea,318961.6037,Epigaeic & Hypogaeic,5.503738406
+Prenolepis_imparis,285129.9901,Epigaeic,5.455042899
+Prenolepis_melanogaster,16654.44205,Epigaeic,4.221530088
+Prenolepis_nitens,279794.135,Epigaeic,5.446838607
+Prionopelta_antillana,257340.4905,Epigaeic & Hypogaeic,5.410508124
+Prionopelta_kraepelini,291836.02,Epigaeic & Hypogaeic,5.465138894
+Pristomyrmex_punctatus,268475.548,Epigaeic,5.428904738
+Pseudomyrmex_cubaensis,123744.5825,Arboreal,5.092526195
+Pseudomyrmex_elongatus,147120.3924,Arboreal,5.167672875
+Pseudomyrmex_gracilis,1517503.632,Arboreal,6.181129739
+Pseudomyrmex_major,130831.5485,Arboreal,5.116712482
+Pseudoponera_stigma,4047412.809,Epigaeic & Hypogaeic,6.607177502
+Rhytidoponera_aspera,268475.548,Epigaeic,5.428904738
+Rhytidoponera_chalybaea,268489.8939,Epigaeic,5.428927943
+Rhytidoponera_mayri,268475.548,Epigaeic,5.428904738
+Rhytidoponera_metallica,271453.8789,Epigaeic,5.433696052
+Rhytidoponera_victoriae,268489.8939,Epigaeic,5.428927943
+Rogeria_curvipubens,7801.23693,Epigaeic & Hypogaeic,3.892163468
+Rogeria_exsulans,268475.548,Epigaeic & Hypogaeic,5.428904738
+Rogeria_stigmatica,268475.548,Epigaeic & Hypogaeic,5.428904738
+Solenopsis_abdita,2274676.111,Epigaeic & Hypogaeic,6.356919567
+Solenopsis_aurea,268475.548,Epigaeic & Hypogaeic,5.428904738
+Solenopsis_fugax,318961.6037,Epigaeic & Hypogaeic,5.503738406
+Solenopsis_gayi,35607.34397,Epigaeic & Hypogaeic,4.55153958
+Solenopsis_geminata,24046095.5,Epigaeic & Hypogaeic,7.381044568
+Solenopsis_geminata micans,77393.12025,Epigaeic & Hypogaeic,4.888702356
+Solenopsis_globularia,1138442.911,Epigaeic & Hypogaeic,6.056311257
+Solenopsis_helena,264473.242,Epigaeic & Hypogaeic,5.422381739
+Solenopsis_invicta,9968397.285,Epigaeic & Hypogaeic,6.998625338
+Solenopsis_macdonaghi,1086714.65,Epigaeic & Hypogaeic,6.036115522
+Solenopsis_molesta,268475.548,Epigaeic & Hypogaeic,5.428904738
+Solenopsis_orbula,3948.252661,Epigaeic & Hypogaeic,3.596404937
+Solenopsis_papuana,2013737.818,Epigaeic & Hypogaeic,6.304002926
+Solenopsis_picea,341777.3858,Epigaeic & Hypogaeic,5.533743324
+Solenopsis_pollux,35607.34397,Epigaeic & Hypogaeic,4.55153958
+Solenopsis_richteri,1589832.443,Epigaeic & Hypogaeic,6.201351355
+Solenopsis_saevissima,1110674.29,Epigaeic & Hypogaeic,6.045586719
+Solenopsis_saevissima itinerans,1969100.649,Epigaeic & Hypogaeic,6.294267915
+Solenopsis_terricola,147120.3924,Epigaeic & Hypogaeic,5.167672875
+Solenopsis_texana,650329.2135,Epigaeic & Hypogaeic,5.813133263
+Solenopsis_validiuscula,147120.3924,Epigaeic & Hypogaeic,5.167672875
+Stigmatomma_besucheti,5062.681312,Hypogaeic,3.70438059
+Stigmatomma_emeryi,493663.7919,Hypogaeic,5.693431275
+Stigmatomma_zwaluwenburgi,36074.05183,Hypogaeic,4.557194925
+Strumigenys_argiola,357402.819,Arboreal & Epigaeic & Hypogaeic,5.553157974
+Strumigenys_eggersi,587078.4826,Arboreal & Epigaeic & Hypogaeic,5.768696163
+Strumigenys_emmae,10712345.32,Arboreal & Epigaeic & Hypogaeic,7.029884564
+Strumigenys_epinotalis,524740.8607,Arboreal & Epigaeic & Hypogaeic,5.719944883
+Strumigenys_godeffroyi,4510787.385,Arboreal & Epigaeic & Hypogaeic,6.654252357
+Strumigenys_gundlachi,159959.551,Arboreal & Epigaeic & Hypogaeic,5.204010176
+Strumigenys_hexamera,525853.1973,Arboreal & Epigaeic & Hypogaeic,5.720864519
+Strumigenys_lanuginosa,402802.6996,Arboreal & Epigaeic & Hypogaeic,5.605092373
+Strumigenys_lewisi,87266.71754,Arboreal & Epigaeic & Hypogaeic,4.940848641
+Strumigenys_louisianae,7826.242291,Arboreal & Epigaeic & Hypogaeic,3.893553289
+Strumigenys_ludovici,599708.8868,Arboreal & Epigaeic & Hypogaeic,5.777940484
+Strumigenys_lujae,16654.44205,Arboreal & Epigaeic & Hypogaeic,4.221530088
+Strumigenys_margaritae,1466229.662,Arboreal & Epigaeic & Hypogaeic,6.166202001
+Strumigenys_maxillaris,599708.8868,Arboreal & Epigaeic & Hypogaeic,5.777940484
+Strumigenys_membranifera,23994968.42,Arboreal & Epigaeic & Hypogaeic,7.380120183
+Strumigenys_minutula,35607.34397,Arboreal & Epigaeic & Hypogaeic,4.55153958
+Strumigenys_nepalensis,219952.6198,Arboreal & Epigaeic & Hypogaeic,5.342329139
+Strumigenys_nigrescens,25.00536106,Arboreal & Epigaeic & Hypogaeic,1.39803313
+Strumigenys_perplexa,268730.1244,Arboreal & Epigaeic & Hypogaeic,5.429316353
+Strumigenys_rogeri,6875076.053,Arboreal & Epigaeic & Hypogaeic,6.837277507
+Strumigenys_silvestrii,2521097.921,Arboreal & Epigaeic & Hypogaeic,6.401589714
+Strumigenys_simoni,597663.6966,Arboreal & Epigaeic & Hypogaeic,5.776456877
+Strumigenys_solifontis,174298.1377,Arboreal & Epigaeic & Hypogaeic,5.241292747
+Strumigenys_xenos,268489.8939,Arboreal & Epigaeic & Hypogaeic,5.428927943
+Syllophopsis_australica,334774.0131,Epigaeic & Hypogaeic,5.524751738
+Syllophopsis_cryptobia,2379871.563,Epigaeic & Hypogaeic,6.37655352
+Syllophopsis_sechellensis,4979909.201,Epigaeic & Hypogaeic,6.697221424
+Syllophopsis_subcoeca,2074490.254,Epigaeic & Hypogaeic,6.316911399
+Tapinoma_darioi,582555.5717,Arboreal & Epigaeic,5.76533736
+Tapinoma_ibericum,281214.8303,Arboreal & Epigaeic,5.44903822
+Tapinoma_madeirense,25774.66162,Arboreal & Epigaeic,4.411192972
+Tapinoma_magnum,1507772.062,Arboreal & Epigaeic,6.178335692
+Tapinoma_melanocephalum,55704480.46,Arboreal & Epigaeic,7.745890128
+Tapinoma_minutum,512662.339,Arboreal & Epigaeic,5.709831415
+Tapinoma_nigerrimum,1186376.819,Arboreal & Epigaeic,6.074222652
+Tapinoma_pygmaeum,35607.34397,Arboreal & Epigaeic,4.55153958
+Tapinoma_ramulorum,35607.34397,Arboreal & Epigaeic,4.55153958
+Tapinoma_sessile,705621.8628,Arboreal & Epigaeic,5.848572028
+Tapinoma_simrothi,8304792.675,Arboreal & Epigaeic,6.919328795
+Tapinoma_wheeleri,16654.44205,Arboreal & Epigaeic,4.221530088
+Technomyrmex_albipes,21101368.87,Arboreal & Epigaeic,7.324310629
+Technomyrmex_brunneus,1802481.648,Arboreal & Epigaeic,6.255870852
+Technomyrmex_difficilis,11848787.23,Arboreal & Epigaeic,7.073673901
+Technomyrmex_elatior,286891.2335,Arboreal & Epigaeic,5.457717278
+Technomyrmex_gibbosus,36261.8317,Arboreal & Epigaeic,4.559449738
+Technomyrmex_jocosus,268531.4651,Arboreal & Epigaeic,5.428995181
+Technomyrmex_kraepelini,37835.39408,Arboreal & Epigaeic,4.577898262
+Technomyrmex_pallipes,1424702.512,Arboreal & Epigaeic,6.15372419
+Technomyrmex_vexatus,913991.2024,Arboreal & Epigaeic,5.960942015
+Technomyrmex_vitiensis,5769754.975,Arboreal & Epigaeic,6.76115737
+Temnothorax_longispinosus,493663.7919,Epigaeic,5.693431275
+Temnothorax_makora,36261.8317,Epigaeic,4.559449738
+Temnothorax_recedens,42867.41366,Epigaeic,4.632127282
+Temnothorax_schaumii,35607.34397,Epigaeic,4.55153958
+Temnothorax_subditivus,459932.5254,Epigaeic,5.662694123
+Temnothorax_unifasciatus,244186.791,Epigaeic,5.387722168
+Tetramorium_atratulum,3672628.997,Arboreal & Epigaeic,6.564977059
+Tetramorium_bicarinatum,44029505.34,Arboreal & Epigaeic,7.643743806
+Tetramorium_caespitum,52916.27375,Arboreal & Epigaeic,4.723589255
+Tetramorium_caldarium,15663308.4,Arboreal & Epigaeic,7.194883499
+Tetramorium_calidum,539465.9732,Arboreal & Epigaeic,5.731964057
+Tetramorium_delagoense,626731.0586,Arboreal & Epigaeic,5.797081217
+Tetramorium_grassii,268475.548,Arboreal & Epigaeic,5.428904738
+Tetramorium_immigrans,11502134.87,Arboreal & Epigaeic,7.060778456
+Tetramorium_impurum,2616.793023,Arboreal & Epigaeic,3.417769373
+Tetramorium_insolens,7511888.663,Arboreal & Epigaeic,6.875749142
+Tetramorium_kheperra,244186.791,Arboreal & Epigaeic,5.387722168
+Tetramorium_kraepelini,43280.54484,Arboreal & Epigaeic,4.636292719
+Tetramorium_lanuginosum,28258940.05,Arboreal & Epigaeic,7.451155868
+Tetramorium_lucayanum,1493861.699,Arboreal & Epigaeic,6.174310393
+Tetramorium_obesum,357402.819,Arboreal & Epigaeic,5.553157974
+Tetramorium_pacificum,8232048.509,Arboreal & Epigaeic,6.915507921
+Tetramorium_pauper,3829.644984,Arboreal & Epigaeic,3.583158516
+Tetramorium_semilaeve,340563.9989,Arboreal & Epigaeic,5.532198737
+Tetramorium_sericeiventre,6088395.755,Arboreal & Epigaeic,6.784502874
+Tetramorium_simillimum,33453709.13,Arboreal & Epigaeic,7.524444277
+Tetramorium_smithi,4416.364948,Arboreal & Epigaeic,3.645064954
+Tetramorium_tonganum,1818047.499,Arboreal & Epigaeic,6.259605226
+Tetramorium_tsushimae,576757.8224,Arboreal & Epigaeic,5.760993493
+Tetraponera_allaborans,63039.8708,Arboreal,4.799615314
+Tetraponera_nigra,36261.8317,Arboreal,4.559449738
+Tetraponera_rufonigra,268961.7799,Arboreal,5.42969057
+Trichomyrmex_destructor,46908904.07,Epigaeic,7.671255287
+Trichomyrmex_mayri,21255326.67,Epigaeic,7.327467784
+Trichomyrmex_robustior,593096.4207,Epigaeic,5.773125303
+Trichomyrmex_wroughtoni,115.9498698,Epigaeic,2.064270265
+Vollenhovia_emeryi,285052.5023,Epigaeic,5.454924858
+Vollenhovia_nipponica,25819.34229,Epigaeic,4.411945175
+Vollenhovia_oblonga alluaudi,486.231921,Epigaeic,2.686843467
+Vollenhovia_piroskae,486.231921,Epigaeic,2.686843467
+Wasmannia_auropunctata,12000924.49,Arboreal & Epigaeic,7.079214703

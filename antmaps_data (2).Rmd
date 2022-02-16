@@ -1,0 +1,98 @@
+---
+title: "Antmaps data"
+author: "Megan Frederickson"
+date: "31/03/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Antmaps
+
+Load packages
+
+```{r Load packages, message=FALSE, warning=FALSE}
+#Load packages
+library(tidyverse) 
+library(lubridate)
+library(knitr)
+library(cowplot)
+library(car)
+library(lme4)
+```
+
+Read in data
+
+```{r Load data}
+antmaps_df <- read_csv("Ant_species_native range.csv")
+
+```
+
+Calculate area of spatial polygons
+
+```{r Spatial polygons}
+#install.packages("rgdal")
+library(rgdal)
+library(sp)
+library(raster)
+#install.packages('terra', repos='https://rspatial.r-universe.dev')
+
+ant_polygons <- shapefile('GABI_Data_Release1.0_18012020/Bentity2_shapefile_fullres/Bentity2_shapefile_fullres.shp') #Read in spatial polygons
+crs(ant_polygons) #Check coordinate reference system (projection)
+ant_polygons$area_sqkm <- area(ant_polygons) / 1000000 #Calculates area of each polygon in square kilometers
+polygons_df <- as.data.frame(ant_polygons)[, -2] #Convert to dataframe
+```
+
+Input area of spatial polygon to dataframe containing other antmaps data and save to file
+
+```{r Merge}
+antmaps_alien_merged <- merge(antmaps_df, polygons_df, by.x = "bentity2_name", by.y = "BENTITY2_N")
+write.csv(antmaps_alien_merged, "antmaps_alien_data_with_area.csv")
+#antmaps_alien_merged <- read.csv("antmaps_alien_data_with_area.csv")
+```
+
+Sum area for each ant species
+
+```{r Total area per ant species}
+sum.by.ant.species.region <- antmaps_alien_merged %>% group_by (Phy, bentity2_name) %>% summarize(area_sqkm = area_sqkm)
+sum.by.ant.species <- sum.by.ant.species.region[!duplicated(sum.by.ant.species.region), ] %>% group_by(Phy) %>% summarize(total.area=sum(area_sqkm, na.rm=TRUE))
+write.csv(sum.by.ant.species, "invaded_area_ant_species.csv")
+
+#grouping by strata
+strata <- strata[!duplicated(strata), ] %>% group_by(Phy, Stratum) %>% summarize(Stratum = Stratum)
+write.csv(strata, "ant_by_strata.csv")
+intro_where <- data.frame(antmaps_alien_merged$Phy, antmaps_alien_merged$Exotic_status)
+colnames(intro_where) <- c("Phy", "Exotic_status")
+intro_where <-  intro_where[!duplicated(intro_where), ] %>% group_by(Phy, Exotic_status) %>% summarize(Exotic_status = Exotic_status)
+write.csv(intro_where, "exotic_status.csv") #one species had more than one value for exotic status
+```
+
+Find maximum and minimum latitude of native range
+
+```{r Max and min latitude}
+
+#install.packages("sf")
+library(sf)
+ant_polygons <- shapefile('GABI_Data_Release1.0_18012020/Bentity2_shapefile_fullres/Bentity2_shapefile_fullres.shp')
+#View(ant_polygons)
+crs(ant_polygons)
+
+polygons_df <- as.data.frame(ant_polygons)
+
+#Using another approach
+ant_poly <- st_read("GABI_Data_Release1.0_18012020/Bentity2_shapefile_fullres/Bentity2_shapefile_fullres.shp")
+class(ant_poly)
+glimpse(ant_poly)
+poly_df <- as.data.frame(ant_poly)
+plot(ant_poly)
+st_crs(ant_poly)
+
+
+
+
+
+
