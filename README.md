@@ -1,7 +1,7 @@
 Mutualism promotes range expansion in both ant and plant partners
 ================
 Pooja Nathan and Megan Frederickson
-18/01/2022
+18/02/2022
 
 # How does mutualism affect ant and plant range sizes?
 
@@ -1213,7 +1213,6 @@ levels(inv_area$Exotic_status) #3 levels
 ``` r
 inv_area$logint <- log10(inv_area$total.area.introduced)
 
-
 inv_area$EFN <- as.factor(inv_area$EFN)
 inv_area$Domatia <- as.factor(inv_area$Domatia)
 inv_area$Seed_Dispersal <- as.factor(inv_area$Seed_Dispersal)
@@ -1332,4 +1331,292 @@ inv_area_phy <- inv_area_phy[complete.cases(inv_area_phy), ]
 #a2 <- gls(logint ~ EFN + Domatia + Seed_Dispersal + abs_lat_native + Exotic_status, 
                 #correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
                 #method = "ML", data = inv_area_phy) 
+```
+
+``` r
+#18 February 2022
+antarea <- read.csv("Ant_species_native range.csv")
+exotic <- read.csv("alien_exotic.csv") 
+indoor <- read.csv("alien_indoor.csv")
+intercepted <- read.csv("alien_intercepted.csv")
+abslat <- read.csv("absolute_native_lat_ants7Feb.csv")
+
+
+exoticlat <- merge(exotic, abslat, by = "Phy", all = FALSE)
+ex <- merge(exoticlat, antarea, by = "Phy", all = FALSE)
+ex <- data.frame(ex)[, -c(2, 5, 7, 8, 9, 11, 12)] 
+
+indoorlat <- merge(indoor, abslat, by = "Phy", all = FALSE)
+ind <- merge(indoorlat, antarea, by = "Phy", all = FALSE)
+ind <- data.frame(ind)[, -c(2, 5, 7, 8, 9, 11, 12)] 
+
+interceptedlat <- merge(intercepted, abslat, by = "Phy", all = FALSE)
+int <- merge(interceptedlat, antarea, by = "Phy", all = FALSE)
+int <- data.frame(int)[, -c(2, 5, 7, 8, 9, 11, 12)] 
+
+antefn <- read.csv("Species_EFN_Data.csv")
+antdom <- read.csv("Species_Domatia_Data.csv")
+antseed <- read.csv("Species_Seed_Dispersal_Data.csv")
+
+
+#Creating merged datasets for area
+efn_ex <- merge(ex, antefn, by.y = "Phy", all = FALSE)
+efn_dom_ex <- merge(efn_ex, antdom, by.y = "Phy", all = FALSE)
+efn_dom_seed_ex <- merge(efn_dom_ex, antseed, by.y = "Phy", all = FALSE)
+ex_mut <- efn_dom_seed_ex
+
+efn_ind <- merge(ind, antefn, by.y = "Phy", all = FALSE)
+efn_dom_ind <- merge(efn_ind, antdom, by.y = "Phy", all = FALSE)
+efn_dom_seed_ind <- merge(efn_dom_ind, antseed, by.y = "Phy", all = FALSE)
+ind_mut <- efn_dom_seed_ind
+
+efn_int <- merge(int, antefn, by.y = "Phy", all = FALSE)
+efn_dom_int <- merge(efn_int, antdom, by.y = "Phy", all = FALSE)
+efn_dom_seed_int <- merge(efn_dom_int, antseed, by.y = "Phy", all = FALSE)
+int_mut <- efn_dom_seed_int
+
+cols <- c("Exotic_status", "EFN", "Domatia", "Seed_Dispersal")
+ex_mut[cols] <- lapply(ex_mut[cols], factor)  
+ind_mut[cols] <- lapply(ind_mut[cols], factor) 
+int_mut[cols] <- lapply(int_mut[cols], factor) 
+
+ex_mut$logint <- log10(ex_mut$total.area + 1)
+ind_mut$logint <- log10(ind_mut$total.area + 1)
+int_mut$logint <- log10(int_mut$total.area + 1)
+
+
+#Exotic (naturalized) species - we expect to see the most difference here
+fig7a <- ggplot(data=ex_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Visits extrafloral nectaries") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+
+fig7b <- ggplot(data=ex_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Resides in domatia") + 
+  ylab("log(Introduced range area (sq. km) + 1)") +
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Domatia, y=logint), fun="mean", geom="crossbar", width=0.25)
+
+
+fig7c <- ggplot(data=ex_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Seed_Dispersal, fill=Seed_Dispersal, x=Seed_Dispersal, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Disperses seeds") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Seed_Dispersal, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+ 
+fig7 <- plot_grid(fig7a, fig7b,fig7c, labels="AUTO", ncol = 3, nrow = 1)
+fig7
+```
+
+![](README_files/figure-gfm/Ants%20-%20mutualism,%20range%20size%20and%20type%20of%20introduction-1.png)<!-- -->
+
+``` r
+ggsave(fig7, device = "jpeg", filename = "Fig7.jpg")
+
+#For indoor introduced species
+fig8a <- ggplot(data=ind_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Visits extrafloral nectaries") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+
+fig8b <- ggplot(data=ind_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Resides in domatia") + 
+  ylab("log(Introduced range area (sq. km) + 1)") +
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Domatia, y=logint), fun="mean", geom="crossbar", width=0.25)
+
+
+fig8c <- ggplot(data=ind_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Seed_Dispersal, fill=Seed_Dispersal, x=Seed_Dispersal, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Disperses seeds") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Seed_Dispersal, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+ 
+fig8 <- plot_grid(fig8a, fig8b,fig8c, labels="AUTO", ncol = 3, nrow = 1)
+fig8
+```
+
+![](README_files/figure-gfm/Ants%20-%20mutualism,%20range%20size%20and%20type%20of%20introduction-2.png)<!-- -->
+
+``` r
+ggsave(fig8, device = "jpeg", filename = "Fig8.jpg")
+
+#For intercepted species
+fig9a <- ggplot(data=int_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Visits extrafloral nectaries") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=EFN, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+
+fig9b <- ggplot(data=int_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Resides in domatia") + 
+  ylab("log(Introduced range area (sq. km) + 1)") +
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Domatia, y=logint), fun="mean", geom="crossbar", width=0.25)
+
+
+fig9c <- ggplot(data=int_mut)+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=Seed_Dispersal, fill=Seed_Dispersal, x=Seed_Dispersal, y=logint), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Disperses seeds") + 
+  ylab("log(Introduced range area (sq. km) + 1)")+
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  stat_summary(aes(x=Seed_Dispersal, y=logint), fun="mean", geom="crossbar", width=0.25)
+  
+ 
+fig9 <- plot_grid(fig8a, fig8b,fig8c, labels="AUTO", ncol = 3, nrow = 1)
+fig9
+```
+
+![](README_files/figure-gfm/Ants%20-%20mutualism,%20range%20size%20and%20type%20of%20introduction-3.png)<!-- -->
+
+``` r
+ggsave(fig9, device = "jpeg", filename = "Fig9.jpg")
+
+#PGLS models for introduction status
+
+#Exotic species (naturalized)
+ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
+phy_int <- intersect(ant_tree$tip.label, ex_mut$Phy)
+phy_diff <- setdiff(ant_tree$tip.label, ex_mut$Phy)
+pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff)) #pruning tree to contain only tips in the dataset
+
+ex_mut_phy <- ex_mut[ex_mut$Phy %in% phy_int, ] #dataset for pgls
+ex_mut_phy <- ex_mut_phy[complete.cases(ex_mut_phy), ]
+
+pex <- gls(logint ~ EFN + Domatia + Seed_Dispersal + abs_lat_native, 
+                correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
+                method = "ML", data = ex_mut_phy)
+summary(pex)
+```
+
+    ## Generalized least squares fit by maximum likelihood
+    ##   Model: logint ~ EFN + Domatia + Seed_Dispersal + abs_lat_native 
+    ##   Data: ex_mut_phy 
+    ##        AIC      BIC    logLik
+    ##   373.5016 392.6549 -179.7508
+    ## 
+    ## Correlation Structure: corPagel
+    ##  Formula: ~Phy 
+    ##  Parameter estimate(s):
+    ##    lambda 
+    ## 0.4181524 
+    ## 
+    ## Coefficients:
+    ##                     Value Std.Error   t-value p-value
+    ## (Intercept)      5.601170 0.3193224 17.540801  0.0000
+    ## EFN1             0.872310 0.3099520  2.814338  0.0058
+    ## Domatia1         0.572299 0.6288212  0.910114  0.3648
+    ## Seed_Dispersal1  0.192754 0.2527423  0.762651  0.4473
+    ## abs_lat_native  -0.021723 0.0094857 -2.290084  0.0239
+    ## 
+    ##  Correlation: 
+    ##                 (Intr) EFN1   Domat1 Sd_Ds1
+    ## EFN1            -0.097                     
+    ## Domatia1        -0.048 -0.384              
+    ## Seed_Dispersal1 -0.116 -0.180  0.058       
+    ## abs_lat_native  -0.405 -0.040  0.087 -0.172
+    ## 
+    ## Standardized residuals:
+    ##        Min         Q1        Med         Q3        Max 
+    ## -3.0325732 -0.5175535  0.2818344  0.9357221  1.6761789 
+    ## 
+    ## Residual standard error: 1.268983 
+    ## Degrees of freedom: 114 total; 109 residual
+
+``` r
+#Indoor introduced species - model doesn't run; some issue with the package and dataset size
+#refer: https://www.researchgate.net/post/Can-someone-help-with-function-gls-Error-false-convergence-8
+
+
+#ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
+#phy_int <- intersect(ant_tree$tip.label, ind_mut$Phy)
+#phy_diff <- setdiff(ant_tree$tip.label, ind_mut$Phy)
+#pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff)) #pruning tree to contain only tips in the dataset
+
+#ind_mut_phy <- ind_mut[ind_mut$Phy %in% phy_int, ] #dataset for pgls
+#ind_mut_phy <- ind_mut_phy[complete.cases(ind_mut_phy), ]
+
+#pind <- gls(logint ~ EFN + Domatia + Seed_Dispersal + abs_lat_native, 
+                #correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
+                #method = "ML", data = ind_mut_phy)
+#summary(pind)
+
+#Intercepted species - this didn't run either
+
+#int_mut_phy$EFN <- as.numeric(int_mut_phy$EFN)
+#int_mut_phy$Domatia <- as.numeric(int_mut_phy$Domatia)
+#int_mut_phy$Seed_Dispersal <- as.numeric(int_mut_phy$Seed_Dispersal)
+
+#ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
+#phy_int <- intersect(ant_tree$tip.label, int_mut$Phy)
+#phy_diff <- setdiff(ant_tree$tip.label, int_mut$Phy)
+#pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff)) #pruning tree to contain only tips in the dataset
+
+#int_mut_phy <- int_mut[int_mut$Phy %in% phy_int, ] #dataset for pgls
+#int_mut_phy <- int_mut_phy[complete.cases(int_mut_phy), ]
+
+#pint <- gls(logint ~ EFN + Domatia + Seed_Dispersal + abs_lat_native, 
+                #correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
+               # method = "ML", data = int_mut_phy)
+#summary(pind)
 ```
