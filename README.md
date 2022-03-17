@@ -1,15 +1,16 @@
 Mutualism promotes range expansion in both ant and plant partners
 ================
 Pooja Nathan and Megan Frederickson
-18/02/2022
+15/03/2022
 
 # How does mutualism affect ant and plant range sizes?
 
 This R Markdown document describes the dataset and code for:
 
-Nathan P, Frederickson ME. In prep: Ecology letters.
+Nathan P, Economo EP, Guenard B, Frederickson ME. Generalized mutualisms
+promote range expansion in both plant and ant partners. In prep.
 
-The first step is to load packages
+First, let’s load the packages we’ll use.
 
 ``` r
 library(car)
@@ -17,49 +18,414 @@ library(olsrr)
 library(ape)
 library(geiger)
 library(nlme)
+library(lme4)
 library(phytools)
-#library(plotrix)
 library(caper)
 library(tidyverse)
 library(cowplot)
-#library(devtools)
+library(knitr)
+library(taxize)
 ```
 
-## Analysis for effect of EFNs on legume range size
+## Legume dataset
+
+We obtained introduced and native range size data for legumes from
+Simonsen et al. (2017).
+
+Mutualistic trait data came from Weber et al. (2015) for extrafloral
+nectaries (EFNs), Chomicki & Renner (2015) for domatia, Simonsen et
+al. (2017) for nodulation, and Maherali et al. (2016) for mycorrhizae.
+
+The next several chunks of code are slow to run, so they are not run
+here, but they are included for reproducibility.
 
 ``` r
+#Not run
+#Legume range and nodulation data
 range <- read.csv("legume_invasion_data_simonsenetal.csv") #Read in legume range data
 names(range)[names(range) == "Species"] <- "Phy"
+range$Phy <- as.character(gsub("_", " ", range$Phy))
 
+#EFN data
 EFN <- read.csv("EFNs_Weberatal_analysis_onlypresence.csv") #Read in EFN data
+EFN$Phy <- as.character(gsub("_", " ", EFN$Phy))
 
-domatia <- read.csv("domatia_chomickirenner_analysis_onlypresence.csv")  #Read in Domatia data
+#Domatia
+domatia <- read.csv("domatia_chomickirenner_analysis_onlypresence.csv")  #Read in domatia data
 names(domatia)[names(domatia) == 'ï..Phy'] <- 'Phy'
+domatia$Phy <- as.character(gsub("_", " ", domatia$Phy))
 
-mycorrhizae <- read.csv("Maherali_simonsen_intersect.csv") #read in legume species in Maherali
-
-range_EFN <- merge(EFN, range, by='Phy', all.x= FALSE, all.y=TRUE) #Merge legume range and EFN data
-range_EFN_domatia <- merge(domatia, range_EFN, by='Phy', all.x=FALSE, all.y=TRUE) #Merge above domatia data
-range_myco <-  merge(mycorrhizae, range, by='Phy') #Merge legume range and mycorrhizae data
-#This command is different from the two above because unlike EFN and domatia, we cannot assume that species we don't have data for don't participate in the mutualism
-range_EFN_domatia$EFN <- ifelse(is.na(range_EFN_domatia$EFN), 0, range_EFN_domatia$EFN) #Make NAs zeros for EFNs
-range_EFN_domatia$Domatia <- ifelse(is.na(range_EFN_domatia$Domatia), 0, range_EFN_domatia$Domatia) #Make NAs zeros for domatia
+#Mycorrhizae
+mycorrhizae <- read.csv("Maherali_simonsen_intersect.csv") #Read in legume species in Maherali et al.'s mycorrhizae dataset
+mycorrhizae$Phy <- as.character(gsub("_", " ", mycorrhizae$Phy))
 ```
 
-## Make figures
+### Check taxonomy
 
-## Number of introduced ranges
+We resolved misspelled names using the gnr_resolve function and checked
+for synonyms using the synonyms function in the taxize package.
+
+First, let’s check the taxonomy of the names of domatia-bearing plants.
+
+Next, let’s check the taxonomy of EFN-bearing plants.
 
 ``` r
-range_EFN_domatia$EFN <- as.factor(range_EFN_domatia$EFN) #Make factor
-range_EFN_domatia$Domatia <- as.factor(range_EFN_domatia$Domatia) #Make factor
-range_myco$Consensus.mycorrhizal.state <- as.factor(range_myco$Consensus.mycorrhizal.state)
+#Not run
+#Do the same as above for the EFN data
+EFN_resolve <- as.data.frame(gnr_resolve(EFN[, "Phy"], best_match_only=TRUE))
+EFN_resolve$num_words <- str_count(EFN_resolve$matched_name, " ")+1
+EFN <- merge(EFN, EFN_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+EFN$matched_name <- ifelse(EFN$num_words == 1, NA, EFN$matched_name)
+EFN$matched_name <- ifelse(!is.na(EFN$matched_name), paste0(word(EFN$matched_name, 1, 1), " ", tolower(word(EFN$matched_name, 2, 2))), EFN$matched_name)
+EFN$diff <- EFN$Phy == EFN$matched_name #Check changes between original and matched names
 
+#Find synonyms for resolved names
+#I had trouble getting this to work consistently so I retrieved the synonyms in batches
+EFN_synonyms_pow1 <- synonyms(EFN[1:100,"matched_name"], db="pow") #Get synonyms
+EFN_synonyms_pow2 <- synonyms(EFN[101:200,"matched_name"], db="pow")
+EFN_synonyms_pow3 <- synonyms(EFN[201:400,"matched_name"], db="pow")
+EFN_synonyms_pow4 <- synonyms(EFN[401:826,"matched_name"], db="pow")
+EFN_synonyms_pow <- c(EFN_synonyms_pow1, EFN_synonyms_pow2, EFN_synonyms_pow3, EFN_synonyms_pow4)
+EFN_syn <- do.call(rbind, EFN_synonyms_pow)
+EFN_syn$matched_name <- gsub('[^-[:^punct:]]', '', (gsub('[[:digit:]]+', '', row.names(EFN_syn))), perl=TRUE)
+EFN_syn <- subset(EFN_syn, rank == "SPECIES") #Keep on species (not varieties)
+colnames(EFN_syn)[2] <- "synonym" #Fix column name
+
+#Determine if original names and synonyms are in domatia, mycorrhizae, and range datasets
+EFN_syn$syndomY <- EFN_syn$synonym %in% domatia$Phy 
+EFN_syn$synrangeY <- EFN_syn$synonym %in% range$Phy
+EFN_syn$synmycoY <- EFN_syn$synonym %in% mycorrhizae$Phy
+write.csv(EFN_syn, "efn_synonyms.csv")
+EFN_syn <- subset(EFN_syn, EFN_syn$syndomY | EFN_syn$synrangeY | EFN_syn$synmycoY) #Subset if synonyms match other datasets
+EFN_syn$EFN <- 1 #Add trait
+EFN_syn <- subset(EFN_syn, !is.na(synonym))
+colnames(EFN_syn)[[2]] <- "Phy" #Fix column name
+
+#Add synonyms to EFN dataset
+EFN <- rbind(EFN[, c("EFN", "Phy", "matched_name")], EFN_syn[, c("EFN", "Phy","matched_name")]) #Merge
+EFN$Phy <- trimws(EFN$Phy) #Trim white space from taxonomic names
+
+#Check if each EFN name is in the EFN, mycorrhizae, and range datasets
+EFN$RangeY <- EFN$Phy %in% range$Phy
+EFN$domY <- EFN$Phy %in% domatia$Phy
+EFN$mycoY <- EFN$Phy %in% mycorrhizae$Phy #No EFN-bearing plants in mycorrhizal dataset
+
+write.csv(EFN, file="efn_resolved.csv", row.names=FALSE)
+```
+
+Merge the EFN and domatia datasets.
+
+``` r
+#Read in taxonomically resolved EFN and domatia datasets
+EFN <- read.csv("efn_resolved.csv")
+domatia <- read.csv("domatia_resolved.csv")
+
+#Further cleaning of EFN and domatia datasets to 
+colnames(EFN)[[3]] <- "matched_name_EFN"
+colnames(domatia)[[3]] <- "matched_name_domatia"
+domatia$diff <- domatia$Phy == domatia$matched_name_domatia 
+EFN$diff <- EFN$Phy == EFN$matched_name_EFN
+EFN <- subset(EFN, !is.na(diff))
+EFN$matches <- EFN$RangeY+EFN$domY+EFN$mycoY
+EFN <- subset(EFN, matches > 0)
+EFN <- EFN[!duplicated(EFN), ]
+#tmp <- EFN[duplicated(EFN$matched_name_EFN), ]
+EFN <- EFN[!duplicated(EFN$matched_name_EFN),]
+
+#Merge 
+EFN_dom <- merge(EFN[,c("EFN", "Phy", "matched_name_EFN")], domatia[,c("Domatia", "Phy")], by="Phy", all=TRUE)
+
+#Add zeros instead of NAs for traits
+EFN_dom$EFN <- ifelse(is.na(EFN_dom$EFN), 0, EFN_dom$EFN)
+EFN_dom$Domatia <- ifelse(is.na(EFN_dom$Domatia), 0, EFN_dom$Domatia)
+```
+
+Next, we’ll check the taxonomy of the legumes for which we have data on
+mycorrhizae.
+
+``` r
+#Not run
+#Resolve names
+mycorrhizae_resolve <- as.data.frame(gnr_resolve(mycorrhizae[, "Phy"], best_match_only=TRUE))
+mycorrhizae_resolve$num_words <- str_count(mycorrhizae_resolve$matched_name, " ")+1
+mycorrhizae <- merge(mycorrhizae, mycorrhizae_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+mycorrhizae$matched_name <- ifelse(mycorrhizae$num_words == 1, NA, mycorrhizae$matched_name)
+mycorrhizae$matched_name <- ifelse(!is.na(mycorrhizae$matched_name), paste0(word(mycorrhizae$matched_name, 1, 1), " ", tolower(word(mycorrhizae$matched_name, 2, 2))), mycorrhizae$matched_name)
+
+#Find synonyms for resolved names
+mycorrhizae_synonyms_pow <- synonyms(mycorrhizae$matched_name, db="pow")
+mycorrhizae_syn <- do.call(rbind, mycorrhizae_synonyms_pow)
+mycorrhizae_syn$matched_name <- gsub('[^-[:^punct:]]', '', (gsub('[[:digit:]]+', '', row.names(mycorrhizae_syn))), perl=TRUE)
+mycorrhizae_syn <- subset(mycorrhizae_syn, rank == "SPECIES") #Keep on species (not varieties)
+colnames(mycorrhizae_syn)[2] <- "synonym" #Fix column name
+
+#Determine if original names and synonyms are in EFN, domatia, and range datasets
+mycorrhizae_syn$syndomY <- mycorrhizae_syn$synonym %in% domatia$Phy 
+mycorrhizae_syn$synrangeY <- mycorrhizae_syn$synonym %in% range$Phy
+mycorrhizae_syn$synefnY <- mycorrhizae_syn$synonym %in% EFN$Phy
+write.csv(mycorrhizae_syn, "mycorrhizae_synonyms.csv")
+
+mycorrhizae_syn <- subset(mycorrhizae_syn, mycorrhizae_syn$syndomY | mycorrhizae_syn$synrangeY | mycorrhizae_syn$synefnY) #Subset if synonyms match other datasets
+mycorrhizae_syn <- subset(mycorrhizae_syn, !is.na(synonym))
+colnames(mycorrhizae_syn)[[2]] <- "Phy" #Fix column name
+
+#Add synonyms to mycorrhizae dataset
+mycorrhizae_syn <- merge(mycorrhizae[, c("matched_name", "Consensus.mycorrhizal.state")], mycorrhizae_syn, by="matched_name", all.x=FALSE, all.y=TRUE)
+mycorrhizae <- rbind(mycorrhizae[, c("Consensus.mycorrhizal.state", "Phy", "matched_name")], mycorrhizae_syn[, c("Consensus.mycorrhizal.state", "Phy","matched_name")]) #Merge
+mycorrhizae$Phy <- trimws(mycorrhizae$Phy) #Trim white space from taxonomic names
+
+#Check if each mycorrhizae name is in the EFN, domatia, and range datasets
+mycorrhizae$RangeY <- mycorrhizae$Phy %in% range$Phy
+mycorrhizae$domY <- mycorrhizae$Phy %in% domatia$Phy
+mycorrhizae$efnY <- mycorrhizae$Phy %in% EFN$Phy 
+
+write.csv(mycorrhizae, file="mycorrhizae_resolved.csv", row.names=FALSE)
+```
+
+Merge the EFN and domatia dataset with the mycorrhizae dataset.
+
+``` r
+#Read in taxonomically resolved mycorrhizal dataset
+mycorrhizae <- read.csv("mycorrhizae_resolved.csv")
+
+#Further cleaning of mycorrhizal dataset
+colnames(mycorrhizae)[[3]] <- "matched_name_myco"
+mycorrhizae$diff <- mycorrhizae$Phy == mycorrhizae$matched_name_myco
+mycorrhizae$matches <-mycorrhizae$RangeY+mycorrhizae$domY+mycorrhizae$efnY
+#tmp <- mycorrhizae[duplicated(mycorrhizae$matched_name_myco), ]
+mycorrhizae <- mycorrhizae[!duplicated(mycorrhizae$matched_name_myco),]
+
+#Merge 
+EFN_dom_myco <- merge(mycorrhizae[, c("Consensus.mycorrhizal.state","Phy", "matched_name_myco")], EFN_dom, by="Phy", all=TRUE)
+```
+
+Finally, we’ll check the taxonomy of the range dataset.
+
+``` r
+#Not run
+#Resolve names
+range_resolve <- as.data.frame(gnr_resolve(range[, "Phy"], best_match_only=TRUE))
+range_resolve$num_words <- str_count(range_resolve$matched_name, " ")+1
+range <- merge(range, range_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+range$matched_name <- ifelse(range$num_words == 1, NA, range$matched_name)
+range$matched_name <- ifelse(!is.na(range$matched_name), paste0(word(range$matched_name, 1, 1), " ", tolower(word(range$matched_name, 2, 2))), range$matched_name)
+range$diff <- range$matched_name == range$Phy #Only one difference and spelling doesn't affect trait data (because taxon is not in EFN/dom/myco dataset)
+
+write.csv(range, file="range_resolved.csv", row.names=FALSE)
+
+#We don't really need to check synonyms, because we've already checked the synonyms of the matching datasets, and our goals with considering synonyms is just to make sure we match trait and range data correctly
+```
+
+Merge the mutualistic trait data with the range dataset.
+
+``` r
+range <- read.csv("range_resolved.csv")
+
+legume_range_df <- merge(range, EFN_dom_myco, all.x="TRUE", all.y="FALSE", by= "Phy") #Put all the data in one dataframe
+legume_range_df$EFN <- ifelse(is.na(legume_range_df$EFN), 0, legume_range_df$EFN) #Add zeros for NAs in EFN trait
+legume_range_df$Domatia <- ifelse(is.na(legume_range_df$Domatia), 0, legume_range_df$Domatia) #Add zeros for NAs in domatia trait
+write.csv(legume_range_df, file="legume_range_traits.csv", row.names = FALSE)
+```
+
+### Summarize legume dataset
+
+We are finally finished cleaning the dataset, and now simply have to
+summarize, visualize, and model.
+
+First, let’s summarize how many species we have in each category. How
+many legumes with vs. without EFNs do we have range size data for, and
+how many introduced ranges have they been introduced to, on average?
+
+``` r
+#Make factors factors
+legume_range_df$EFN <- as.factor(legume_range_df$EFN)
+legume_range_df$Domatia <- as.factor(legume_range_df$Domatia)
+legume_range_df$fixer <- as.factor(legume_range_df$fixer)
+legume_range_df$Consensus.mycorrhizal.state <- as.factor(legume_range_df$Consensus.mycorrhizal.state)
+legume_range_df$annual <- as.numeric(legume_range_df$annual)
+
+##Collapse all mycorrhizal fungi types into a single yes/no category
+legume_range_df$myco <- ifelse(legume_range_df$Consensus.mycorrhizal.state == "AM" | legume_range_df$Consensus.mycorrhizal.state == "AMNM" | legume_range_df$Consensus.mycorrhizal.state == "EM", 1, ifelse(legume_range_df$Consensus.mycorrhizal.state == "NM", 0, NA))
+legume_range_df$myco <- as.factor(legume_range_df$myco)
+
+df <- legume_range_df
+
+summary.efn <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.efn)
+```
+
+| EFN |    n | mean_num_introduced | sd_num_introduced | se_num_introduced |
+|:----|-----:|--------------------:|------------------:|------------------:|
+| 0   | 3695 |            1.366170 |          5.332059 |         0.0877178 |
+| 1   |  280 |            5.257143 |         10.864345 |         0.6492688 |
+
+How many legumes with vs. without domatia do we have range size data
+for?
+
+``` r
+summary.dom <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.dom)
+```
+
+| Domatia |    n | mean_num_introduced | sd_num_introduced | se_num_introduced |
+|:--------|-----:|--------------------:|------------------:|------------------:|
+| 0       | 3952 |           1.6467611 |          5.991534 |         0.0953080 |
+| 1       |   23 |           0.5217391 |          1.201119 |         0.2504507 |
+
+How many legumes that do vs. do not form nodules do we have range size
+data for?
+
+``` r
+summary.fix <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.fix)
+```
+
+| fixer |    n | mean_num_introduced | sd_num_introduced | se_num_introduced |
+|:------|-----:|--------------------:|------------------:|------------------:|
+| 0     |  396 |            2.482323 |          6.839364 |         0.3436910 |
+| 1     | 3579 |            1.547080 |          5.865714 |         0.0980483 |
+
+How many legumes do vs. do not associate with mycorrhizae do we have
+range size data for?
+
+``` r
+summary.myco <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(myco) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.myco)
+```
+
+| myco |   n | mean_num_introduced | sd_num_introduced | se_num_introduced |
+|:-----|----:|--------------------:|------------------:|------------------:|
+| 0    |   8 |            3.625000 |          7.963084 |         2.8153755 |
+| 1    | 297 |            9.555556 |         14.708810 |         0.8534917 |
+
+### Make figures
+
+#### Number of introduced ranges
+
+Our measure of ecological success for legumes is the number of new
+ranges they have been successfully introduced to.
+
+##### Dots and whiskers
+
+``` r
+pt_size <- 3
+y_limits <- c(-1, 20)
+er_width <- 0.1
+y_text <- -0.5
+
+p_EFN <- ggplot(data=summary.efn, aes(x=EFN, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_dom <- ggplot(data=summary.dom, aes(x=Domatia, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_fix <- ggplot(data=summary.fix, aes(x=fixer, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_myco <- ggplot(data=subset(summary.myco, !is.na(myco)), aes(x=myco, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=myco, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Mycorrhizae")+geom_text(aes(x=myco, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))
+
+fig1 <- plot_grid(p_EFN, p_dom, p_myco, p_fix)
+fig1
+```
+
+![](README_files/figure-gfm/Dot%20and%20whisker%20plots-1.png)<!-- -->
+
+``` r
+save_plot("MEF_figure1.pdf", fig1, base_height=6)
+
+summary.myco2 <- ungroup(subset(legume_range_df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(Consensus.mycorrhizal.state) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+
+p_myco_sup <- ggplot(data=subset(summary.myco2, !is.na(Consensus.mycorrhizal.state)), aes(x=Consensus.mycorrhizal.state, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Consensus.mycorrhizal.state, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Mycorrhizal state")+geom_text(aes(x=Consensus.mycorrhizal.state, y= 0.1, label=n))+scale_y_continuous(limits=c(0, 12.5))
+p_myco_sup
+```
+
+![](README_files/figure-gfm/Dot%20and%20whisker%20plots-2.png)<!-- -->
+
+``` r
+save_plot("MEF_figureS1.pdf", p_myco_sup, base_height=6)
+```
+
+##### Multiple mutualisms
+
+What about when we look at the influence of multiple mutualisms on
+legume range size? First up, the influence of one versus two mutualisms:
+
+``` r
+y_limits <- c(-1,20)
+
+summary.efnfix <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efnfix$trait <- paste0(summary.efnfix$EFN, summary.efnfix$fixer)
+
+p_efnfix <- ggplot(data=summary.efnfix, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor nodules", "Nodules only\n (no EFNs)", "EFNs only\n (no nodules)", "Both EFNs\n and nodules"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.efndom <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efndom$trait <- paste0(summary.efndom$EFN, summary.efndom$Domatia)
+
+p_efndom <- ggplot(data=summary.efndom, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor domatia", "Domatia only\n (no EFNs)", "EFNs only\n (no domatia)", "Both EFNs\n and domatia"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.efnmyco <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, myco) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efnmyco$trait <- paste0(summary.efnmyco$EFN, summary.efnmyco$myco)
+
+p_efnmyco <- ggplot(data=subset(summary.efnmyco, !is.na(myco)), aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor mycorrhizae", "Mycorrhizae only\n (no EFNs)", "Both EFNs\n and mycorrhizae"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.mycofix <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(myco, fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.mycofix$trait <- paste0(summary.mycofix$fixer, summary.mycofix$myco)
+
+p_mycofix <- ggplot(data=subset(summary.mycofix, !is.na(myco)), aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Mycorrhizae only", "Nodules only", "Both nodules\n and mycorrhizae"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+fig2 <- plot_grid(p_efndom, p_efnfix, p_efnmyco, p_mycofix, labels="AUTO")
+fig2
+```
+
+![](README_files/figure-gfm/Multiple%20mutualism%20plots-1.png)<!-- -->
+
+``` r
+save_plot("MEF_figure2.pdf", fig2, base_height=6)
+```
+
+Next, the influence of three versus two versus one mutualism:
+
+``` r
+summary.all2 <- ungroup(subset(legume_range_df, !is.na(myco)) %>% group_by(myco, fixer, EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.all2$trait <- paste0(summary.all2$myco, summary.all2$fixer, summary.all2$EFN)
+
+p_3 <- ggplot(data=summary.all2, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Nodules only", "Mycorrhizae only", "Mycorrhizae\n and EFNs\n (no nodules)", "Mycorrhizae\n and nodules\n (no EFNs)", "Mycorrhizae, \nnodules, \nand EFNs"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+p_3
+```
+
+![](README_files/figure-gfm/Three%20mutualisms%20versus%20two-1.png)<!-- -->
+
+``` r
+save_plot("MEF_figure3.pdf", p_3, base_height=6)
+```
+
+We can also look at the data on multiple mutualisms slightly
+differently.
+
+``` r
+legume_range_df$num_mutualisms <- as.numeric(as.character(legume_range_df$fixer))+as.numeric(as.character(legume_range_df$EFN))+as.numeric(as.character(legume_range_df$myco))+as.numeric(as.character(legume_range_df$Domatia))
+
+summary.mnum <- subset(legume_range_df, !is.na(num_mutualisms)) %>% group_by(num_mutualisms) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n))
+summary.mnum$num_mutualisms <- as.factor(summary.mnum$num_mutualisms)
+
+p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+scale_y_continuous(limits=y_limits)+geom_text(aes(x=num_mutualisms, y= y_text, label=n))
+p_num_mutualisms
+```
+
+![](README_files/figure-gfm/Number%20of%20mutualisms-1.png)<!-- -->
+
+``` r
+save_plot("MEF_figure4.pdf", p_num_mutualisms, base_height = 4)
+```
+
+##### Violin plots
+
+The number of introduced ranges is a very non-normal response variable,
+so it is also helpful to look at the underlying data distribution.
+
+``` r
 hues <- c("#af8dc3", "#7fbf7b")
 colours <- c("#af8dc3", "#7fbf7b", "#f0e442", "#0072b2")
 
 #EFNs
-fig1a <- ggplot(data=range_EFN_domatia)+
+fig1a <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(num_introduced+1)), alpha=0.7)+
@@ -71,10 +437,9 @@ fig1a <- ggplot(data=range_EFN_domatia)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1a
 
 #Domatia
-fig1b <- ggplot(data=range_EFN_domatia)+
+fig1b <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=(num_introduced+1)), alpha=0.7)+
@@ -84,14 +449,10 @@ fig1b <- ggplot(data=range_EFN_domatia)+
   ylab("Introduced ranges (no. + 1)")+
   stat_summary(aes(x=Domatia, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
-  theme(legend.position = "none")+
-  scale_y_log10()
-#fig1b
+  theme(legend.position = "none")
 
 #Nodules
-range$fixer <- as.factor(range$fixer)
-
-fig1c <- ggplot(data=range)+
+fig1c <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(num_introduced+1)), alpha=0.7)+
@@ -103,37 +464,39 @@ fig1c <- ggplot(data=range)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1c
 
 #Mycorrhizae
-fig1d <- ggplot(data=range_myco)+
-  scale_fill_manual(values=colours) +
-  scale_colour_manual(values=colours) +
-  geom_violin(aes(color=Consensus.mycorrhizal.state, fill=Consensus.mycorrhizal.state, x=Consensus.mycorrhizal.state, y=(num_introduced+1)), alpha=0.7)+
-  scale_x_discrete(labels = waiver()) + 
-  xlab("Mycorrhizal state") + 
+fig1d <- ggplot(data=subset(legume_range_df, !is.na(myco)))+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=myco, fill=myco, x=myco, y=(num_introduced+1)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Mycorrhizae") + 
   ylab("Introduced ranges (no. + 1)")+
-  stat_summary(aes(x=Consensus.mycorrhizal.state, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
+  stat_summary(aes(x=myco, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1d
 
 fig1 <- plot_grid(fig1a, fig1b, fig1c, fig1d, labels="AUTO",  ncol = 2, nrow = 2)
 fig1
 ```
 
-![](README_files/figure-gfm/number%20introduced%20ranges-1.png)<!-- -->
+![](README_files/figure-gfm/Violin%20plots%20for%20number%20introduced%20ranges-1.png)<!-- -->
 
 ``` r
-ggsave(fig1, device = "jpeg", filename = "Fig1.jpg")
+save_plot("Fig1.pdf", fig1, base_height=8)
 ```
 
-## Native range area
+#### Native range area
+
+It is also interesting to produce the same figures for legume native
+ranges.
 
 ``` r
 #EFNs
-fig2a <- ggplot(data=range_EFN_domatia)+
+fig2a <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -145,10 +508,9 @@ fig2a <- ggplot(data=range_EFN_domatia)+
   theme(legend.position = "none")+
   stat_summary(aes(x=EFN, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   scale_y_log10()
-#fig2a
 
 #Domatia
-fig2b <- ggplot(data=range_EFN_domatia)+
+fig2b <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -160,10 +522,9 @@ fig2b <- ggplot(data=range_EFN_domatia)+
   theme(legend.position = "none")+
   stat_summary(aes(x=Domatia, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   scale_y_log10()
-#fig2b
 
 #Nodules
-fig2c <- ggplot(data=range)+
+fig2c <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -175,512 +536,370 @@ fig2c <- ggplot(data=range)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig2c
 
 #Mycorrhizae
-fig2d <- ggplot(data=range_myco)+
+fig2d <- ggplot(data=subset(legume_range_df, !is.na(total_area_native) & !is.na(myco)))+
   scale_fill_manual(values=colours) +
   scale_colour_manual(values=colours) +
-  geom_violin(aes(color=Consensus.mycorrhizal.state, fill=Consensus.mycorrhizal.state, x=Consensus.mycorrhizal.state, y=(total_area_native/1e+6)), alpha=0.7)+
-  scale_x_discrete(labels = waiver()) + 
-  xlab("Mycorrhizal state") + 
+  geom_violin(aes(color=myco, fill=myco, x=myco, y=(total_area_native/1e+6)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Mycorrhizae") + 
   ylab("Native range area (sq. km)")+
-  stat_summary(aes(x=Consensus.mycorrhizal.state, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
+  stat_summary(aes(x=myco, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig2d
 
 fig2 <- plot_grid(fig2a, fig2b, fig2c, fig2d, labels="AUTO", ncol = 2, nrow = 2)
 fig2
 ```
 
-![](README_files/figure-gfm/native%20range%20area-1.png)<!-- -->
+![](README_files/figure-gfm/Violin%20plots%20for%20legume%20native%20range%20area-1.png)<!-- -->
 
 ``` r
-ggsave(fig2, device = "jpeg", filename = "Fig2.jpg")
+save_plot("Fig2.pdf", fig2, base_height=8)
 ```
 
-## Preparing dataset for pgls analysis
+### Statistical models
+
+#### Preparing dataset for pgls analysis
 
 ``` r
-range_EFN_domatia$Phy <- as.character(range_EFN_domatia$Phy)
+legume_range_df$Phy <- paste0(as.character(word(legume_range_df$matched_name, 1, 1)), "_", as.character(word(legume_range_df$matched_name, 2, 2)))
 zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
-phyint <- intersect(zanne$tip.label, range_EFN_domatia$Phy)  
-phydiff <- setdiff(zanne$tip.label, range_EFN_domatia$Phy)
+phyint <- intersect(zanne$tip.label, legume_range_df$Phy)  
+phydiff <- setdiff(zanne$tip.label, legume_range_df$Phy)
 pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
 
-range_ed_pgls <- range_EFN_domatia[range_EFN_domatia$Phy %in% phyint, ]
-range_ed_pgls <- range_ed_pgls[complete.cases(range_ed_pgls), ] #removing NA elements
+range_pgls <- legume_range_df[legume_range_df$Phy %in% phyint, ]
+#colnames(range_pgls)
+range_pgls <-range_pgls[,-c(16,17,19,21, 22)]
+range_pgls <- range_pgls[complete.cases(range_pgls[, 1:17]), 1:17] #removing NA elements
 ```
 
-## Statistical models for EFN and domatia
+#### Statistical models for EFN, domatia, and rhizobia
+
+\####PGLS The problem with PGLS models is that lose a lot of trait data
+for species not in the phylogeny. We either need a better phylogeny or a
+non-phylogenetic model.
 
 ``` r
-#PGLS of number of introduced ranges as response variable with EFNs and domatia, 
+#PGLS of number of introduced ranges as response variable with EFNs, domatia, and nodules, 
 #interaction and other covariates
+#Interactions that were not significant were removed
 
-
-p2 <- gls(log(num_introduced + 1) ~ EFN + Domatia + EFN*Domatia + 
-            total_area_native + abs_lat_native + annual + uses_num_uses, 
+pgls1 <- gls(log(num_introduced + 1) ~  EFN+fixer+Domatia+
+            total_area_native + abs_lat_native + uses_num_uses, 
             correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), 
-            method = "ML", data = range_ed_pgls) 
-summary(p2)
+            method = "ML", data = range_pgls) 
+summary(pgls1)
 ```
 
     ## Generalized least squares fit by maximum likelihood
-    ##   Model: log(num_introduced + 1) ~ EFN + Domatia + EFN * Domatia + total_area_native +      abs_lat_native + annual + uses_num_uses 
-    ##   Data: range_ed_pgls 
+    ##   Model: log(num_introduced + 1) ~ EFN + fixer + Domatia + total_area_native +      abs_lat_native + uses_num_uses 
+    ##   Data: range_pgls 
     ##        AIC      BIC    logLik
-    ##   2676.735 2727.776 -1328.367
+    ##   2674.527 2720.472 -1328.264
     ## 
     ## Correlation Structure: corPagel
     ##  Formula: ~Phy 
     ##  Parameter estimate(s):
     ##    lambda 
-    ## 0.2770456 
+    ## 0.2985714 
     ## 
     ## Coefficients:
-    ##                        Value Std.Error  t-value p-value
-    ## (Intercept)        0.2688513 0.1743411  1.54210  0.1233
-    ## EFN1               0.4688815 0.0757388  6.19077  0.0000
-    ## Domatia1          -0.2057372 0.3686124 -0.55814  0.5769
-    ## total_area_native  0.0000000 0.0000000 -1.84921  0.0647
-    ## abs_lat_native    -0.0025208 0.0020300 -1.24173  0.2146
-    ## annual             0.0603591 0.0669246  0.90190  0.3673
-    ## uses_num_uses      0.4182882 0.0124121 33.69993  0.0000
-    ## EFN1:Domatia1     -0.2406518 0.7878291 -0.30546  0.7601
+    ##                        Value  Std.Error  t-value p-value
+    ## (Intercept)        0.2414079 0.18618819  1.29658  0.1950
+    ## EFN1               0.4666834 0.07393441  6.31213  0.0000
+    ## fixer1             0.1051833 0.11490284  0.91541  0.3602
+    ## Domatia1          -0.2741057 0.31071593 -0.88217  0.3779
+    ## total_area_native  0.0000000 0.00000000 -1.97277  0.0487
+    ## abs_lat_native    -0.0028245 0.00203168 -1.39021  0.1647
+    ## uses_num_uses      0.4174307 0.01242123 33.60624  0.0000
     ## 
     ##  Correlation: 
-    ##                   (Intr) EFN1   Domat1 ttl_r_ abs_l_ annual uss_n_
-    ## EFN1              -0.016                                          
-    ## Domatia1          -0.017  0.025                                   
-    ## total_area_native -0.078 -0.027 -0.024                            
-    ## abs_lat_native    -0.243  0.033  0.036  0.079                     
-    ## annual            -0.047 -0.008  0.002  0.079  0.089              
-    ## uses_num_uses     -0.075 -0.108  0.016 -0.422  0.033  0.048       
-    ## EFN1:Domatia1      0.002 -0.083 -0.463  0.028 -0.002  0.004  0.011
+    ##                   (Intr) EFN1   fixer1 Domat1 ttl_r_ abs_l_
+    ## EFN1               0.005                                   
+    ## fixer1            -0.240 -0.069                            
+    ## Domatia1           0.002 -0.001 -0.097                     
+    ## total_area_native -0.061 -0.020 -0.039 -0.006              
+    ## abs_lat_native    -0.211  0.025 -0.056  0.053  0.074       
+    ## uses_num_uses     -0.085 -0.119  0.071  0.019 -0.429  0.026
     ## 
     ## Standardized residuals:
     ##        Min         Q1        Med         Q3        Max 
-    ## -3.4682164 -0.3123671 -0.2299303  0.4226491  3.3585991 
+    ## -3.5166795 -0.3724317 -0.2873092  0.3582873  3.2490062 
     ## 
-    ## Residual standard error: 0.807169 
-    ## Degrees of freedom: 1217 total; 1209 residual
+    ## Residual standard error: 0.8157242 
+    ## Degrees of freedom: 1218 total; 1211 residual
 
 ``` r
-#EFN significant positive, domatia and interaction not significant
-
 #Diagnostic plots
-plot(p2$residuals, p2$fitted)
+plot(pgls1$residuals, pgls1$fitted)
 ```
 
 ![](README_files/figure-gfm/models1-1.png)<!-- -->
 
 ``` r
-qqnorm(p2$residuals)
-qqline(p2$residuals)
+qqnorm(pgls1$residuals)
+qqline(pgls1$residuals)
 ```
 
 ![](README_files/figure-gfm/models1-2.png)<!-- -->
 
 ``` r
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p3 <- glm(num_introduced ~ EFN + Domatia + EFN*Domatia + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_ed_pgls)
-summary(p3)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = num_introduced ~ EFN + Domatia + EFN * Domatia + 
-    ##     total_area_native + abs_lat_native + annual + uses_num_uses, 
-    ##     family = "quasipoisson", data = range_ed_pgls)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -9.5612  -1.7810  -1.4174  -0.0283  13.1201  
-    ## 
-    ## Coefficients:
-    ##                     Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)        1.698e-01  1.035e-01   1.640   0.1012    
-    ## EFN1               4.871e-01  9.788e-02   4.976 7.42e-07 ***
-    ## Domatia1          -1.508e+00  1.570e+00  -0.961   0.3370    
-    ## total_area_native -3.142e-15  3.586e-15  -0.876   0.3811    
-    ## abs_lat_native    -5.830e-03  2.729e-03  -2.136   0.0329 *  
-    ## annual             5.680e-01  1.056e-01   5.379 8.98e-08 ***
-    ## uses_num_uses      4.593e-01  1.405e-02  32.682  < 2e-16 ***
-    ## EFN1:Domatia1     -1.038e+01  4.693e+02  -0.022   0.9824    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for quasipoisson family taken to be 7.388056)
-    ## 
-    ##     Null deviance: 15070.1  on 1216  degrees of freedom
-    ## Residual deviance:  6630.1  on 1209  degrees of freedom
-    ## AIC: NA
-    ## 
-    ## Number of Fisher Scoring iterations: 9
-
-``` r
-#Analysis for area introduced
-#PGLS with both EFN and domatia, interaction and covariates
-
-#PGLS with both EFN and Domatia, interaction, covariates
-p5 <- gls(log((total_area_introduced/1e+6)+1) ~ EFN + Domatia + EFN*Domatia+ total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_ed_pgls) 
-summary(p5)
+#Repeating for native area
+#PGLS with both EFN presence and fixer, interaction and covariates
+pgls2 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls)
+summary(pgls2)
 ```
 
     ## Generalized least squares fit by maximum likelihood
-    ##   Model: log((total_area_introduced/1e+06) + 1) ~ EFN + Domatia + EFN *      Domatia + total_area_native + abs_lat_native + annual + uses_num_uses 
-    ##   Data: range_ed_pgls 
+    ##   Model: log((total_area_native/1e+06) + 1) ~ EFN * Domatia + fixer +      abs_lat_native + annual + uses_num_uses 
+    ##   Data: range_pgls 
     ##        AIC      BIC    logLik
-    ##   7623.874 7674.916 -3801.937
+    ##   4096.973 4148.023 -2038.487
     ## 
     ## Correlation Structure: corPagel
     ##  Formula: ~Phy 
     ##  Parameter estimate(s):
     ##    lambda 
-    ## 0.1809063 
+    ## 0.4867984 
     ## 
     ## Coefficients:
-    ##                       Value Std.Error   t-value p-value
-    ## (Intercept)        2.020600  1.093714  1.847467  0.0649
-    ## EFN1               3.219079  0.579713  5.552887  0.0000
-    ## Domatia1          -0.225372  2.800803 -0.080467  0.9359
-    ## total_area_native  0.000000  0.000000  0.294054  0.7688
-    ## abs_lat_native     0.022584  0.015044  1.501194  0.1336
-    ## annual             0.860898  0.506309  1.700341  0.0893
-    ## uses_num_uses      2.253913  0.094627 23.819030  0.0000
-    ## EFN1:Domatia1     -3.833778  6.068842 -0.631715  0.5277
+    ##                    Value Std.Error  t-value p-value
+    ## (Intercept)    14.872323 0.4449507 33.42465  0.0000
+    ## EFN1           -0.084274 0.1311692 -0.64248  0.5207
+    ## Domatia1        0.520113 0.6362782  0.81743  0.4138
+    ## fixer1          0.052785 0.2243940  0.23524  0.8141
+    ## abs_lat_native -0.007560 0.0037769 -2.00162  0.0455
+    ## annual         -0.042577 0.1202714 -0.35401  0.7234
+    ## uses_num_uses   0.247043 0.0201702 12.24788  0.0000
+    ## EFN1:Domatia1  -3.329663 1.3619219 -2.44483  0.0146
     ## 
     ##  Correlation: 
-    ##                   (Intr) EFN1   Domat1 ttl_r_ abs_l_ annual uss_n_
-    ## EFN1              -0.020                                          
-    ## Domatia1          -0.023  0.028                                   
-    ## total_area_native -0.097 -0.030 -0.023                            
-    ## abs_lat_native    -0.288  0.032  0.041  0.082                     
-    ## annual            -0.058 -0.010  0.003  0.071  0.084              
-    ## uses_num_uses     -0.088 -0.106  0.017 -0.423  0.034  0.051       
-    ## EFN1:Domatia1      0.003 -0.083 -0.458  0.027 -0.004  0.003  0.010
+    ##                (Intr) EFN1   Domat1 fixer1 abs_l_ annual uss_n_
+    ## EFN1            0.003                                          
+    ## Domatia1        0.004  0.032                                   
+    ## fixer1         -0.180 -0.069 -0.094                            
+    ## abs_lat_native -0.165  0.026  0.040 -0.043                     
+    ## annual         -0.026 -0.003  0.005 -0.016  0.087              
+    ## uses_num_uses  -0.093 -0.146 -0.001  0.047  0.070  0.092       
+    ## EFN1:Domatia1  -0.004 -0.080 -0.458  0.038 -0.004  0.001  0.030
     ## 
     ## Standardized residuals:
     ##        Min         Q1        Med         Q3        Max 
-    ## -2.8188487 -0.5860838 -0.4378052  0.7366424  2.4072745 
+    ## -7.3332007 -0.3214131  0.1352405  0.6055820  1.6111615 
     ## 
-    ## Residual standard error: 5.878475 
-    ## Degrees of freedom: 1217 total; 1209 residual
+    ## Residual standard error: 1.646571 
+    ## Degrees of freedom: 1218 total; 1210 residual
 
 ``` r
-plot(p5$residuals, p5$fitted)
+#Diagnostic plots
+plot(pgls2$residuals, pgls2$fitted)
 ```
 
 ![](README_files/figure-gfm/models1-3.png)<!-- -->
 
 ``` r
-qqnorm(p5$residuals)
-qqline(p5$residuals)
+qqnorm(pgls2$residuals)
+qqline(pgls2$residuals)
 ```
 
 ![](README_files/figure-gfm/models1-4.png)<!-- -->
 
-``` r
-#Repeating for native area
-#PGLS with both EFN presence and fixer, interaction and covariates
-p6 <- gls(log((total_area_native/1e+6) + 1) ~ EFN + Domatia + EFN*Domatia + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_ed_pgls)
-summary(p6)
-```
-
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log((total_area_native/1e+06) + 1) ~ EFN + Domatia + EFN * Domatia +      abs_lat_native + annual + uses_num_uses 
-    ##   Data: range_ed_pgls 
-    ##        AIC      BIC    logLik
-    ##   4092.105 4138.042 -2037.053
-    ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy 
-    ##  Parameter estimate(s):
-    ##    lambda 
-    ## 0.4849969 
-    ## 
-    ## Coefficients:
-    ##                    Value Std.Error  t-value p-value
-    ## (Intercept)    14.892213 0.4363908 34.12587  0.0000
-    ## EFN1           -0.075294 0.1337445 -0.56297  0.5736
-    ## Domatia1        0.665569 0.6641354  1.00216  0.3165
-    ## abs_lat_native -0.007488 0.0037734 -1.98431  0.0474
-    ## annual         -0.042073 0.1202215 -0.34997  0.7264
-    ## uses_num_uses   0.246151 0.0201266 12.23017  0.0000
-    ## EFN1:Domatia1  -3.470638 1.3758223 -2.52259  0.0118
-    ## 
-    ##  Correlation: 
-    ##                (Intr) EFN1   Domat1 abs_l_ annual uss_n_
-    ## EFN1           -0.012                                   
-    ## Domatia1       -0.011  0.021                            
-    ## abs_lat_native -0.177  0.037  0.030                     
-    ## annual         -0.029 -0.002  0.003  0.087              
-    ## uses_num_uses  -0.086 -0.136 -0.001  0.070  0.093       
-    ## EFN1:Domatia1   0.002 -0.083 -0.474 -0.002  0.002  0.030
-    ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -7.3232512 -0.3069108  0.1539609  0.6247867  1.6308463 
-    ## 
-    ## Residual standard error: 1.644628 
-    ## Degrees of freedom: 1217 total; 1210 residual
+#### Mixed models
 
 ``` r
-#all effects non-significant
+legume_range_df$genus <- as.factor(word(legume_range_df$Phy, 1, 1, sep="_"))
 
+legume_range_df$introducedY <- ifelse(legume_range_df$num_introduced > 0, 1, 0)
 
-#Diagnostic plots
-plot(p6$residuals, p6$fitted)
+binomial1 <- glmer(introducedY~EFN+Domatia+fixer+annual+abs_lat_native+uses_num_uses+(1|genus), data=legume_range_df, family="binomial") 
+summary(binomial1)
 ```
 
-![](README_files/figure-gfm/models1-5.png)<!-- -->
-
-``` r
-qqnorm(p6$residuals)
-qqline(p6$residuals)
-```
-
-![](README_files/figure-gfm/models1-6.png)<!-- -->
-
-## Statistical models for Rhizobial symbiosis
-
-``` r
-range$Phy <- as.character(range$Phy)
-phyint <- intersect(zanne$tip.label, range$Phy)  
-phydiff <- setdiff(zanne$tip.label, range$Phy)
-pruned.tree.pgls <- drop.tip(zanne, phydiff)
-
-range_pgls <- range[range$Phy %in% phyint, ]
-range_pgls <- range_pgls[complete.cases(range_pgls), ]
-
-#PGLS of number of introduced ranges as response variable withd rhizobial symbiosis
-#and other covariates
-p8 <- gls(log(num_introduced + 1) ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls) 
-summary(p8)
-```
-
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log(num_introduced + 1) ~ fixer + total_area_native + abs_lat_native +      annual + uses_num_uses 
-    ##   Data: range_pgls 
-    ##        AIC      BIC    logLik
-    ##   2709.595 2750.428 -1346.797
+    ## Generalized linear mixed model fit by maximum likelihood (Laplace
+    ##   Approximation) [glmerMod]
+    ##  Family: binomial  ( logit )
+    ## Formula: introducedY ~ EFN + Domatia + fixer + annual + abs_lat_native +  
+    ##     uses_num_uses + (1 | genus)
+    ##    Data: legume_range_df
     ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy 
-    ##  Parameter estimate(s):
-    ##    lambda 
-    ## 0.2961177 
+    ##      AIC      BIC   logLik deviance df.resid 
+    ##   2535.1   2584.4  -1259.5   2519.1     3524 
     ## 
-    ## Coefficients:
-    ##                        Value  Std.Error  t-value p-value
-    ## (Intercept)        0.2299740 0.18850526  1.21999  0.2227
-    ## fixer1             0.1465607 0.11604565  1.26296  0.2068
-    ## total_area_native  0.0000000 0.00000000 -1.73845  0.0824
-    ## abs_lat_native    -0.0030575 0.00206918 -1.47763  0.1398
-    ## annual             0.0587183 0.06798857  0.86365  0.3880
-    ## uses_num_uses      0.4276283 0.01254028 34.10038  0.0000
+    ## Scaled residuals: 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -12.2520  -0.3556  -0.2270  -0.1244   6.2403 
     ## 
-    ##  Correlation: 
-    ##                   (Intr) fixer1 ttl_r_ abs_l_ annual
-    ## fixer1            -0.241                            
-    ## total_area_native -0.064 -0.044                     
-    ## abs_lat_native    -0.214 -0.053  0.082              
-    ## annual            -0.039 -0.025  0.081  0.091       
-    ## uses_num_uses     -0.087  0.064 -0.429  0.032  0.046
+    ## Random effects:
+    ##  Groups Name        Variance Std.Dev.
+    ##  genus  (Intercept) 1.293    1.137   
+    ## Number of obs: 3532, groups:  genus, 441
     ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -3.1172741 -0.4051342 -0.3259334  0.4048065  3.1503612 
-    ## 
-    ## Residual standard error: 0.827861 
-    ## Degrees of freedom: 1217 total; 1211 residual
-
-``` r
-#Not significant
-
-#Diagnostic plots
-plot(p8$residuals, p8$fitted)
-```
-
-![](README_files/figure-gfm/models2-1.png)<!-- -->
-
-``` r
-qqnorm(p8$residuals)
-qqline(p8$residuals)
-```
-
-![](README_files/figure-gfm/models2-2.png)<!-- -->
-
-``` r
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p9 <- glm(num_introduced ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_pgls)
-summary(p9)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = num_introduced ~ fixer + total_area_native + abs_lat_native + 
-    ##     annual + uses_num_uses, family = "quasipoisson", data = range_pgls)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -8.6289  -1.7755  -1.4727  -0.0642  12.8243  
-    ## 
-    ## Coefficients:
-    ##                     Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)        2.053e-01  1.294e-01   1.586  0.11300    
-    ## fixer1             1.005e-01  1.150e-01   0.874  0.38255    
-    ## total_area_native -4.629e-15  3.695e-15  -1.253  0.21055    
-    ## abs_lat_native    -7.780e-03  2.761e-03  -2.818  0.00491 ** 
-    ## annual             4.868e-01  1.069e-01   4.553 5.81e-06 ***
-    ## uses_num_uses      4.686e-01  1.418e-02  33.044  < 2e-16 ***
+    ## Fixed effects:
+    ##                 Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)    -3.360958   0.271914 -12.360  < 2e-16 ***
+    ## EFN1            1.259013   0.209302   6.015  1.8e-09 ***
+    ## Domatia1        0.396862   0.825923   0.481   0.6309    
+    ## fixer1          0.529877   0.253114   2.093   0.0363 *  
+    ## annual          0.392269   0.174686   2.246   0.0247 *  
+    ## abs_lat_native  0.004726   0.005368   0.880   0.3786    
+    ## uses_num_uses   1.128844   0.051784  21.799  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## (Dispersion parameter for quasipoisson family taken to be 7.589359)
-    ## 
-    ##     Null deviance: 15070.1  on 1216  degrees of freedom
-    ## Residual deviance:  6809.8  on 1211  degrees of freedom
-    ## AIC: NA
-    ## 
-    ## Number of Fisher Scoring iterations: 6
+    ## Correlation of Fixed Effects:
+    ##             (Intr) EFN1   Domat1 fixer1 annual abs_l_
+    ## EFN1        -0.080                                   
+    ## Domatia1    -0.057 -0.020                            
+    ## fixer1      -0.765  0.012 -0.006                     
+    ## annual      -0.053 -0.002  0.012 -0.061              
+    ## abs_lat_ntv -0.293  0.050  0.078 -0.165  0.035       
+    ## uses_num_ss -0.343  0.004  0.036  0.107  0.135  0.036
 
 ``` r
-#Results qualitatively similar
-
-#Analysis for area introduced
-p10 <- gls(log((total_area_introduced/1e+6)+1) ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls) 
-
-summary(p10)
+Anova(binomial1, type=3)
 ```
 
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log((total_area_introduced/1e+06) + 1) ~ fixer + total_area_native +      abs_lat_native + annual + uses_num_uses 
-    ##   Data: range_pgls 
-    ##        AIC      BIC    logLik
-    ##   7649.255 7690.088 -3816.628
+    ## Analysis of Deviance Table (Type III Wald chisquare tests)
     ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy 
-    ##  Parameter estimate(s):
-    ##   lambda 
-    ## 0.200572 
-    ## 
-    ## Coefficients:
-    ##                       Value Std.Error   t-value p-value
-    ## (Intercept)       1.7581510 1.2081808  1.455205  0.1459
-    ## fixer1            0.9768641 0.8291967  1.178085  0.2390
-    ## total_area_native 0.0000000 0.0000000  0.390669  0.6961
-    ## abs_lat_native    0.0187152 0.0153337  1.220531  0.2225
-    ## annual            0.8479365 0.5134317  1.651508  0.0989
-    ## uses_num_uses     2.3154869 0.0954195 24.266403  0.0000
-    ## 
-    ##  Correlation: 
-    ##                   (Intr) fixer1 ttl_r_ abs_l_ annual
-    ## fixer1            -0.291                            
-    ## total_area_native -0.075 -0.048                     
-    ## abs_lat_native    -0.244 -0.066  0.086              
-    ## annual            -0.044 -0.030  0.074  0.088       
-    ## uses_num_uses     -0.104  0.073 -0.430  0.031  0.047
-    ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -2.4450079 -0.6340286 -0.5259645  0.7283855  2.2597791 
-    ## 
-    ## Residual standard error: 6.003987 
-    ## Degrees of freedom: 1217 total; 1211 residual
+    ## Response: introducedY
+    ##                   Chisq Df Pr(>Chisq)    
+    ## (Intercept)    152.7789  1  < 2.2e-16 ***
+    ## EFN             36.1837  1  1.796e-09 ***
+    ## Domatia          0.2309  1    0.63087    
+    ## fixer            4.3824  1    0.03631 *  
+    ## annual           5.0426  1    0.02473 *  
+    ## abs_lat_native   0.7751  1    0.37865    
+    ## uses_num_uses  475.2038  1  < 2.2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-#EFN significant positive, fixer and interaction not significant
-
-plot(p10$residuals, p10$fitted)
+plot(binomial1)
 ```
 
-![](README_files/figure-gfm/models2-3.png)<!-- -->
+![](README_files/figure-gfm/glmm-1.png)<!-- -->
 
 ``` r
-qqnorm(p10$residuals)
-qqline(p10$residuals)
+legume_range_df_introducedY <- subset(legume_range_df, num_introduced >0)
+hist(log(legume_range_df_introducedY$num_introduced))
 ```
 
-![](README_files/figure-gfm/models2-4.png)<!-- -->
+![](README_files/figure-gfm/glmm-2.png)<!-- -->
 
 ``` r
-#Repeating for native area
-
-p11 <- gls(log((total_area_native/1e+6) + 1) ~ fixer + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls)
-summary(p11)
+lmer1 <- lmer(log(num_introduced)~EFN+Domatia+fixer+abs_lat_native+total_area_native+annual+uses_num_uses+(1|genus), data=legume_range_df_introducedY)
 ```
 
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log((total_area_native/1e+06) + 1) ~ fixer + abs_lat_native +      annual + uses_num_uses 
-    ##   Data: range_pgls 
-    ##        AIC      BIC    logLik
-    ##   4095.042 4130.771 -2040.521
-    ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy 
-    ##  Parameter estimate(s):
-    ##    lambda 
-    ## 0.4733439 
-    ## 
-    ## Coefficients:
-    ##                    Value Std.Error  t-value p-value
-    ## (Intercept)    14.868508 0.4369321 34.02933  0.0000
-    ## fixer1          0.061557 0.2224800  0.27669  0.7821
-    ## abs_lat_native -0.007462 0.0037721 -1.97817  0.0481
-    ## annual         -0.040423 0.1204605 -0.33557  0.7373
-    ## uses_num_uses   0.245840 0.0199941 12.29561  0.0000
-    ## 
-    ##  Correlation: 
-    ##                (Intr) fixer1 abs_l_ annual
-    ## fixer1         -0.184                     
-    ## abs_lat_native -0.169 -0.040              
-    ## annual         -0.026 -0.016  0.087       
-    ## uses_num_uses  -0.095  0.038  0.074  0.092
-    ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -7.3884770 -0.3356729  0.1306844  0.6042513  1.6161696 
-    ## 
-    ## Residual standard error: 1.635342 
-    ## Degrees of freedom: 1217 total; 1212 residual
+    ## Warning: Some predictor variables are on very different scales: consider
+    ## rescaling
 
 ``` r
-#all mutualism effects non-significant
-
-
-plot(p11$residuals, p11$fitted)
+summary(lmer1)
 ```
 
-![](README_files/figure-gfm/models2-5.png)<!-- -->
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: log(num_introduced) ~ EFN + Domatia + fixer + abs_lat_native +  
+    ##     total_area_native + annual + uses_num_uses + (1 | genus)
+    ##    Data: legume_range_df_introducedY
+    ## 
+    ## REML criterion at convergence: 2265.7
+    ## 
+    ## Scaled residuals: 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -2.88825 -0.73180 -0.03294  0.67398  2.47609 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  genus    (Intercept) 0.1172   0.3423  
+    ##  Residual             0.7836   0.8852  
+    ## Number of obs: 813, groups:  genus, 195
+    ## 
+    ## Fixed effects:
+    ##                     Estimate Std. Error t value
+    ## (Intercept)        7.028e-01  1.390e-01   5.055
+    ## EFN1               3.885e-01  1.013e-01   3.833
+    ## Domatia1          -1.088e+00  4.098e-01  -2.654
+    ## fixer1            -1.340e-01  1.310e-01  -1.023
+    ## abs_lat_native    -2.462e-03  2.808e-03  -0.877
+    ## total_area_native -3.039e-15  3.783e-15  -0.803
+    ## annual             6.725e-02  1.086e-01   0.619
+    ## uses_num_uses      3.206e-01  1.644e-02  19.502
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             (Intr) EFN1   Domat1 fixer1 abs_l_ ttl_r_ annual
+    ## EFN1        -0.126                                          
+    ## Domatia1    -0.003 -0.024                                   
+    ## fixer1      -0.755  0.025 -0.025                            
+    ## abs_lat_ntv -0.359  0.109  0.063 -0.115                     
+    ## total_r_ntv -0.065 -0.022  0.005 -0.130  0.031              
+    ## annual      -0.030  0.043 -0.005 -0.080 -0.088  0.127       
+    ## uses_num_ss -0.294 -0.064 -0.041  0.100  0.044 -0.379  0.050
+    ## fit warnings:
+    ## Some predictor variables are on very different scales: consider rescaling
 
 ``` r
-qqnorm(p11$residuals)
-qqline(p11$residuals)
+Anova(lmer1, type=3)
 ```
 
-![](README_files/figure-gfm/models2-6.png)<!-- --> ## Statistical models
-for mycorrhizae
+    ## Analysis of Deviance Table (Type III Wald chisquare tests)
+    ## 
+    ## Response: log(num_introduced)
+    ##                      Chisq Df Pr(>Chisq)    
+    ## (Intercept)        25.5568  1  4.296e-07 ***
+    ## EFN                14.6936  1  0.0001265 ***
+    ## Domatia             7.0448  1  0.0079494 ** 
+    ## fixer               1.0465  1  0.3063054    
+    ## abs_lat_native      0.7689  1  0.3805648    
+    ## total_area_native   0.6454  1  0.4217503    
+    ## annual              0.3832  1  0.5358805    
+    ## uses_num_uses     380.3192  1  < 2.2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
+plot(lmer1)
+```
+
+![](README_files/figure-gfm/glmm-3.png)<!-- -->
+
+#### Statistical models for mycorrhizae
+
+``` r
+range_myco <- subset(legume_range_df, !is.na(myco))
 range_myco$Phy <- as.character(range_myco$Phy)
 phyint1 <- intersect(zanne$tip.label, range_myco$Phy)  
 phydiff1 <- setdiff(zanne$tip.label, range_myco$Phy)
 pruned.myco.pgls <- drop.tip(zanne, phydiff1) #dropping tips not in the dataset
 
 range_myco_pgls <- range_myco[range_myco$Phy %in% phyint1, ]
-range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ]
+colnames(range_myco_pgls)
+```
 
+    ##  [1] "Phy"                         "fixer"                      
+    ##  [3] "num_introduced"              "total_area_introduced"      
+    ##  [5] "total_area_native"           "lat_native"                 
+    ##  [7] "abs_lat_native"              "annual"                     
+    ##  [9] "uses_num_uses"               "submitted_name"             
+    ## [11] "matched_name"                "data_source_title"          
+    ## [13] "score"                       "num_words"                  
+    ## [15] "diff"                        "Consensus.mycorrhizal.state"
+    ## [17] "matched_name_myco"           "EFN"                        
+    ## [19] "matched_name_EFN"            "Domatia"                    
+    ## [21] "myco"                        "num_mutualisms"             
+    ## [23] "genus"                       "introducedY"
+
+``` r
+range_myco_pgls <-range_myco_pgls[,-c(17,19)]
+range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls[, 1:22]), 1:22] #removing NA elements
 
 #PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-p12 <- gls(log(num_introduced + 1) ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
-summary(p12)
+pgls3 <- gls(log(num_introduced + 1) ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
+summary(pgls3)
 ```
 
     ## Generalized least squares fit by maximum likelihood
@@ -731,156 +950,6 @@ summary(p12)
     ## Residual standard error: 0.993691 
     ## Degrees of freedom: 211 total; 203 residual
 
-``` r
-#Neither mutualism nor interaction significant
-
-#Diagnostic plots
-plot(p12$residuals, p12$fitted)
-```
-
-![](README_files/figure-gfm/models3-1.png)<!-- -->
-
-``` r
-qqnorm(p12$residuals)
-qqline(p12$residuals)
-```
-
-![](README_files/figure-gfm/models3-2.png)<!-- -->
-
-``` r
-anova12 <- Anova(p12, type = 3)
-
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p13 <- glm(num_introduced ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_myco_pgls)
-summary(p13)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = num_introduced ~ Consensus.mycorrhizal.state + 
-    ##     total_area_native + abs_lat_native + annual + uses_num_uses, 
-    ##     family = "quasipoisson", data = range_myco_pgls)
-    ## 
-    ## Deviance Residuals: 
-    ##    Min      1Q  Median      3Q     Max  
-    ## -7.890  -2.839  -1.486   1.109   9.952  
-    ## 
-    ## Coefficients:
-    ##                                   Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                      1.550e+00  1.862e-01   8.326 1.23e-14 ***
-    ## Consensus.mycorrhizal.stateAMNM -1.225e-01  2.247e-01  -0.545 0.586365    
-    ## Consensus.mycorrhizal.stateEM   -9.023e-01  6.048e-01  -1.492 0.137293    
-    ## Consensus.mycorrhizal.stateNM   -8.204e-01  6.249e-01  -1.313 0.190700    
-    ## total_area_native               -9.907e-15  5.485e-15  -1.806 0.072383 .  
-    ## abs_lat_native                  -5.453e-03  4.471e-03  -1.220 0.224001    
-    ## annual                           6.004e-01  1.564e-01   3.840 0.000165 ***
-    ## uses_num_uses                    2.920e-01  2.479e-02  11.775  < 2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for quasipoisson family taken to be 10.75634)
-    ## 
-    ##     Null deviance: 4024.0  on 210  degrees of freedom
-    ## Residual deviance: 2094.3  on 203  degrees of freedom
-    ## AIC: NA
-    ## 
-    ## Number of Fisher Scoring iterations: 6
-
-``` r
-#Results qualitatively similar
-
-#Analysis for area introduced
-#PGLS with both domatia presence and fixer, interaction and covariates
-#range_myco_pgls <- na.omit(range_myco_pgls)
-#range_myco_pgls$Consensus.mycorrhizal.state <- as.factor(range_myco_pgls$Consensus.mycorrhizal.state)
-#range_myco_pgls$fixer <- as.factor(range_myco_pgls$fixer)
-######this model didin't run
-#p14 <- gls(log((total_area_introduced/1e+6) + 1)~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
-
-#summary(p14)
-#EFN significant positive, fixer and interaction not significant
-
-#plot(p14$residuals, p14$fitted)
-#qqnorm(p14$residuals)
-#qqline(p14$residuals)
-
-
-#Repeating for native area
-#PGLS with mycorrhizae and covariates
-
-p15 <- gls(log((total_area_native/1e+6) + 1) ~ Consensus.mycorrhizal.state + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls)
-summary(p15)
-```
-
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log((total_area_native/1e+06) + 1) ~ Consensus.mycorrhizal.state +      abs_lat_native + annual + uses_num_uses 
-    ##   Data: range_myco_pgls 
-    ##        AIC      BIC    logLik
-    ##   714.6984 744.8651 -348.3492
-    ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy 
-    ##  Parameter estimate(s):
-    ##    lambda 
-    ## 0.1528252 
-    ## 
-    ## Coefficients:
-    ##                                     Value Std.Error  t-value p-value
-    ## (Intercept)                     14.871023 0.3255386 45.68129  0.0000
-    ## Consensus.mycorrhizal.stateAMNM  0.276721 0.3011077  0.91901  0.3592
-    ## Consensus.mycorrhizal.stateEM   -0.235649 0.4738458 -0.49731  0.6195
-    ## Consensus.mycorrhizal.stateNM    0.222567 0.5294551  0.42037  0.6747
-    ## abs_lat_native                   0.015585 0.0070497  2.21073  0.0282
-    ## annual                          -0.711057 0.2755074 -2.58090  0.0106
-    ## uses_num_uses                    0.155271 0.0357852  4.33896  0.0000
-    ## 
-    ##  Correlation: 
-    ##                                 (Intr) C..AMN Cn..EM Cn..NM abs_l_ annual
-    ## Consensus.mycorrhizal.stateAMNM  0.045                                   
-    ## Consensus.mycorrhizal.stateEM   -0.121  0.054                            
-    ## Consensus.mycorrhizal.stateNM    0.033  0.132  0.024                     
-    ## abs_lat_native                  -0.452 -0.231  0.022 -0.233              
-    ## annual                          -0.086 -0.028  0.021 -0.037  0.117       
-    ## uses_num_uses                   -0.309 -0.086  0.070  0.089  0.087 -0.078
-    ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -4.1625690 -0.4424276  0.2505273  0.7372759  1.8333824 
-    ## 
-    ## Residual standard error: 1.310304 
-    ## Degrees of freedom: 211 total; 204 residual
-
-``` r
-plot(p15$residuals, p15$fitted)
-```
-
-![](README_files/figure-gfm/models3-3.png)<!-- -->
-
-``` r
-qqnorm(p15$residuals)
-qqline(p15$residuals)
-```
-
-![](README_files/figure-gfm/models3-4.png)<!-- -->
-
-``` r
-anova15 <- Anova(p15, type = 3)
-anova15
-```
-
-    ## Analysis of Deviance Table (Type III tests)
-    ## 
-    ## Response: log((total_area_native/1e+06) + 1)
-    ##                             Df     Chisq Pr(>Chisq)    
-    ## (Intercept)                  1 2086.7807  < 2.2e-16 ***
-    ## Consensus.mycorrhizal.state  3    1.2415   0.743058    
-    ## abs_lat_native               1    4.8873   0.027054 *  
-    ## annual                       1    6.6610   0.009854 ** 
-    ## uses_num_uses                1   18.8266  1.432e-05 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
 # Do EFN-visiting ants have higher range size?
 
 ``` r
@@ -908,9 +977,56 @@ efn_area <- merge(nat_inv_area_lat, antefn, by.y = "Phy", all = FALSE)
 efn_dom_area <- merge(efn_area, antdom, by.y = "Phy", all = FALSE)
 efn_dom_seed_area <- merge(efn_dom_area, antseed, by.y = "Phy", all = FALSE)
 area <- efn_dom_seed_area
+area$EFN <- as.factor(area$EFN)
+area$Seed_Dispersal <- as.factor(area$Seed_Dispersal)
+area$Domatia <- as.factor(area$Domatia)
 #write.csv(area, "ants_nat_alien_mutualismcombined.csv")
+```
 
+``` r
+pt_size <- 3
+y_limits <- c(-10000, 4.5e+6)
+er_width <- 0.1
+y_text <- -0.5
 
+summary.ant.efn <- area %>% group_by(EFN) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_antEFN
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+``` r
+summary.ant.dom <- area %>% group_by(Domatia) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_antdom <- ggplot(data=summary.ant.dom, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_antdom
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+
+``` r
+summary.ant.elaiosome <- area %>% group_by(Seed_Dispersal) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_elaiosome <- ggplot(data=summary.ant.elaiosome, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_elaiosome
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
+
+``` r
+fig3 <- plot_grid(p_antEFN, p_antdom, p_elaiosome)
+fig3
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-4.png)<!-- -->
+
+``` r
+save_plot("MEF_figure3.pdf", fig3, base_height=6)
+```
+
+``` r
 #Making figures
 
 area$EFN <- as.factor(area$EFN)
@@ -968,11 +1084,15 @@ fig3 <- plot_grid(fig3a, fig3b,fig3c, labels="AUTO", ncol = 3, nrow = 1)
 fig3
 ```
 
-![](README_files/figure-gfm/efns%20and%20ants-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 ggsave(fig3, device = "jpeg", filename = "Fig3.jpg")
+```
 
+    ## Saving 7 x 5 in image
+
+``` r
 ### Invaded range size
 
 
@@ -1019,11 +1139,13 @@ fig4 <- plot_grid(fig4a, fig4b,fig4c, labels="AUTO", ncol = 3, nrow = 1)
 fig4
 ```
 
-![](README_files/figure-gfm/efns%20and%20ants-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
 ``` r
 ggsave(fig4, device = "jpeg", filename = "Fig4.jpg")
 ```
+
+    ## Saving 7 x 5 in image
 
 ``` r
 #all ant mutualisms
@@ -1170,8 +1292,8 @@ qqline(a2$residuals)
 
 ![](README_files/figure-gfm/efns/domatia%20and%20ants%20models-4.png)<!-- -->
 
-#In introduced species, do naturalized species spread more when they
-participate #in mutualisms than indoor introduced and other categories?
+\#In introduced species, do naturalized species spread more when they
+participate \#in mutualisms than indoor introduced and other categories?
 
 ``` r
 ###Native range size
@@ -1317,7 +1439,7 @@ fig6
 ggsave(fig6, device = "jpeg", filename = "Fig6.jpg")
 ```
 
-#PGLS models for species above
+\#PGLS models for species above
 
 ``` r
 ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny

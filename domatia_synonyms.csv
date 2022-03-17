@@ -1,0 +1,58 @@
+"","synonym","matched_name","synEFNY","synrangeY","synmycoY"
+"Acacia cedilloi","Acacia × cedilloi","Acacia cedilloi",FALSE,FALSE,FALSE
+"Andira vermifuga1","Andira spinulosa","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga2","Andira kuhlmannii","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga3","Vouacapoua paniculata","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga4","Andira paniculata","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga5","Skolemora pernambucensis","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga6","Vouacapoua spinulosa","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga7","Geoffroea spinulosa","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga8","Vouacapoua vermifuga","Andira vermifuga",FALSE,FALSE,FALSE
+"Andira vermifuga9","Geoffroea vermifuga","Andira vermifuga",FALSE,FALSE,FALSE
+"Humboldtia brunonis","Batschia brunonis","Humboldtia brunonis",FALSE,FALSE,FALSE
+"Humboldtia laurifolia1","Humboldtia pentapetala","Humboldtia laurifolia",FALSE,FALSE,FALSE
+"Humboldtia laurifolia2","Batschia laurifolia","Humboldtia laurifolia",FALSE,FALSE,FALSE
+"Leonardoxa africana1","Schotia africana","Leonardoxa africana",FALSE,FALSE,FALSE
+"Leonardoxa africana2","Humboldtia africana","Leonardoxa africana",FALSE,FALSE,FALSE
+"Macrolobium acaciifolium1","Outea acaciifolia","Macrolobium acaciifolium",FALSE,FALSE,FALSE
+"Macrolobium acaciifolium2","Macrolobium acaciifolium var. vestitum","Macrolobium acaciifolium",FALSE,FALSE,FALSE
+"Macrolobium acaciifolium3","Vouapa acaciifolia","Macrolobium acaciifolium",FALSE,FALSE,FALSE
+"Platymiscium pinnatum","Amerimnon pinnatum","Platymiscium pinnatum",FALSE,FALSE,FALSE
+"Pterocarpus amazonum1","Phellocarpus amazonum","Pterocarpus amazonum",FALSE,FALSE,FALSE
+"Pterocarpus amazonum2","Pterocarpus ulei","Pterocarpus amazonum",FALSE,FALSE,FALSE
+"Pterocarpus amazonum3","Lingoum acuminatum","Pterocarpus amazonum",FALSE,FALSE,FALSE
+"Pterocarpus amazonum4","Phellocarpus acutus","Pterocarpus amazonum",FALSE,FALSE,FALSE
+"Pterocarpus amazonum5","Pterocarpus ancylocalyx var. angustifolius","Pterocarpus amazonum",FALSE,FALSE,FALSE
+"Spatholobus bracteolatus","Butea bracteolata","Spatholobus bracteolatus",FALSE,FALSE,FALSE
+"Spatholobus oblongifolius1","Butea oblongifolia","Spatholobus oblongifolius",FALSE,FALSE,FALSE
+"Spatholobus oblongifolius2","Butea affinis","Spatholobus oblongifolius",FALSE,FALSE,FALSE
+"Spatholobus oblongifolius3","Spatholobus affinis","Spatholobus oblongifolius",FALSE,FALSE,FALSE
+"Tachigali cavipes","Tachigali paniculata var. cavipes","Tachigali cavipes",FALSE,FALSE,FALSE
+"Tachigali chrysophylla1","Sclerolobium chrysophyllum","Tachigali chrysophylla",FALSE,TRUE,FALSE
+"Tachigali chrysophylla2","Sclerolobium sericeum","Tachigali chrysophylla",FALSE,FALSE,FALSE
+"Tachigali dwyeri","Sclerolobium dwyeri","Tachigali dwyeri",FALSE,FALSE,FALSE
+"Tachigali formicarum","Tachigali tessmannii","Tachigali formicarum",FALSE,FALSE,FALSE
+"Tachigali glauca1","Sclerolobium myrmecophilum","Tachigali glauca",FALSE,FALSE,FALSE
+"Tachigali glauca2","Tachigali myrmecophila","Tachigali glauca",FALSE,TRUE,FALSE
+"Tachigali macbridei","Sclerolobium rigidum","Tachigali macbridei",FALSE,FALSE,FALSE
+"Tachigali odoratissima","Sclerolobium odoratissimum","Tachigali odoratissima",FALSE,TRUE,FALSE
+"Tachigali paniculata1","Tachigali grandiflora","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata2","Tachigali eriocalyx","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata3","Tachia paniculata","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata4","Tachigali paniculata var. comosa","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata5","Tachigali ulei","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata6","Tachigali paniculata var. angustifolia","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata7","Tachigali angustifolia","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata8","Tachigali carinata","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata9","Tachia trigona","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata10","Tachigali trigona","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata11","Tachigali sericea","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata12","Tachigali rusbyi","Tachigali paniculata",FALSE,TRUE,FALSE
+"Tachigali paniculata13","Cuba trigona","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata14","Tachigali pulchra","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali paniculata15","Cuba paniculata","Tachigali paniculata",FALSE,FALSE,FALSE
+"Tachigali physophora","Sclerolobium physophorum","Tachigali physophora",FALSE,FALSE,FALSE
+"Tachigali poeppigiana1","Tachigali polyphylla","Tachigali poeppigiana",FALSE,FALSE,FALSE
+"Tachigali poeppigiana2","Sclerolobium poeppigianum","Tachigali poeppigiana",FALSE,FALSE,FALSE
+"Tachigali rigida","Tachigali rigida var. argentata","Tachigali rigida",FALSE,FALSE,FALSE
+"Tachigali vaupesiana","Sclerolobium odoratissimum var. latifolium","Tachigali vaupesiana",FALSE,FALSE,FALSE

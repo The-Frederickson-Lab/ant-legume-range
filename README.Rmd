@@ -1,22 +1,22 @@
 ---
 title: "Mutualism promotes range expansion in both ant and plant partners"
 author: "Pooja Nathan and Megan Frederickson"
-date: "18/02/2022"
+date: "15/03/2022"
 output: github_document
 editor_options: 
   chunk_output_type: console
 ---
 
-# How does mutualism affect ant and plant range sizes? 
+# How does mutualism affect ant and plant range sizes?     
 This R Markdown document describes the dataset and code for:
 
-Nathan P, Frederickson ME. In prep: Ecology letters. 
+Nathan P, Economo EP, Guenard B, Frederickson ME. Generalized mutualisms promote range expansion in both plant and ant partners. In prep. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-The first step is to load packages
+First, let's load the packages we'll use.
 
 ```{r packages, warning=FALSE, message=FALSE}
 library(car)
@@ -24,50 +24,385 @@ library(olsrr)
 library(ape)
 library(geiger)
 library(nlme)
+library(lme4)
 library(phytools)
-#library(plotrix)
 library(caper)
 library(tidyverse)
 library(cowplot)
-#library(devtools)
+library(knitr)
+library(taxize)
 ```
 
-## Analysis for effect of EFNs on legume range size
+## Legume dataset
+We obtained introduced and native range size data for legumes from Simonsen et al. (2017).
 
-```{r merge mutualism and legume range datasets, warning=FALSE, message=FALSE}
+Mutualistic trait data came from Weber et al. (2015) for extrafloral nectaries (EFNs), Chomicki & Renner (2015) for domatia, Simonsen et al. (2017) for nodulation, and Maherali et al. (2016) for mycorrhizae. 
+
+The next several chunks of code are slow to run, so they are not run here, but they are included for reproducibility.
+
+```{r Read in mutualism and legume range datasets, warning=FALSE, message=FALSE, eval=FALSE}
+#Not run
+#Legume range and nodulation data
 range <- read.csv("legume_invasion_data_simonsenetal.csv") #Read in legume range data
 names(range)[names(range) == "Species"] <- "Phy"
+range$Phy <- as.character(gsub("_", " ", range$Phy))
 
+#EFN data
 EFN <- read.csv("EFNs_Weberatal_analysis_onlypresence.csv") #Read in EFN data
+EFN$Phy <- as.character(gsub("_", " ", EFN$Phy))
 
-domatia <- read.csv("domatia_chomickirenner_analysis_onlypresence.csv")  #Read in Domatia data
+#Domatia
+domatia <- read.csv("domatia_chomickirenner_analysis_onlypresence.csv")  #Read in domatia data
 names(domatia)[names(domatia) == 'ï..Phy'] <- 'Phy'
+domatia$Phy <- as.character(gsub("_", " ", domatia$Phy))
 
-mycorrhizae <- read.csv("Maherali_simonsen_intersect.csv") #read in legume species in Maherali
-
-range_EFN <- merge(EFN, range, by='Phy', all.x= FALSE, all.y=TRUE) #Merge legume range and EFN data
-range_EFN_domatia <- merge(domatia, range_EFN, by='Phy', all.x=FALSE, all.y=TRUE) #Merge above domatia data
-range_myco <-  merge(mycorrhizae, range, by='Phy') #Merge legume range and mycorrhizae data
-#This command is different from the two above because unlike EFN and domatia, we cannot assume that species we don't have data for don't participate in the mutualism
-range_EFN_domatia$EFN <- ifelse(is.na(range_EFN_domatia$EFN), 0, range_EFN_domatia$EFN) #Make NAs zeros for EFNs
-range_EFN_domatia$Domatia <- ifelse(is.na(range_EFN_domatia$Domatia), 0, range_EFN_domatia$Domatia) #Make NAs zeros for domatia
-
+#Mycorrhizae
+mycorrhizae <- read.csv("Maherali_simonsen_intersect.csv") #Read in legume species in Maherali et al.'s mycorrhizae dataset
+mycorrhizae$Phy <- as.character(gsub("_", " ", mycorrhizae$Phy))
 ```
 
-## Make figures
+### Check taxonomy
+We resolved misspelled names using the gnr_resolve function and checked for synonyms using the synonyms function in the taxize package. 
 
-## Number of introduced ranges
+First, let's check the taxonomy of the names of domatia-bearing plants. 
 
-```{r number introduced ranges, warning=FALSE, message=FALSE}
-range_EFN_domatia$EFN <- as.factor(range_EFN_domatia$EFN) #Make factor
-range_EFN_domatia$Domatia <- as.factor(range_EFN_domatia$Domatia) #Make factor
-range_myco$Consensus.mycorrhizal.state <- as.factor(range_myco$Consensus.mycorrhizal.state)
+```{r Check taxonomic names for domatia dataset, include=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+#Not run
+#Resolve names
+domatia_resolve <- as.data.frame(gnr_resolve(domatia[, "Phy"], best_match_only=TRUE)) 
+domatia <- merge(domatia, domatia_resolve, by.x = "Phy", by.y = "user_supplied_name", all.x=TRUE) #Merge resolved and original names
+domatia$matched_name <- paste0(word(domatia$matched_name, 1, 1), " ", tolower(word(domatia$matched_name, 2, 2))) #Make lower case and reduce to just genus species (in other words, get rid of names of taxonomic authorities)
 
+#Find synonyms for resolved names
+domatia_synonyms_pow <- synonyms(domatia$matched_name, db="pow") #Get synonyms
+domatia_syn <- as.data.frame(unlist(lapply(domatia_synonyms_pow, nth, 2))) #Make into dataframe
+colnames(domatia_syn) <- "synonym" #Fix column name
+domatia_syn$matched_name <- gsub('[[:digit:]]+', '', row.names(domatia_syn)) #Fix rownames
+
+#Determine if original names and synonyms are in EFN, mycorrhizae, and range datasets
+domatia_syn$synEFNY <- domatia_syn$synonym %in% EFN$Phy 
+domatia_syn$synrangeY <- domatia_syn$synonym %in% range$Phy
+domatia_syn$synmycoY <- domatia_syn$synonym %in% mycorrhizae$Phy
+write.csv(domatia_syn, "domatia_synonyms.csv") #Save synonyms
+domatia_syn <- subset(domatia_syn, domatia_syn$synEFNY | domatia_syn$synrangeY | domatia_syn$synmycoY) #Subset if synonyms match other datasets
+domatia_syn$Domatia <- 1 #Add trait
+colnames(domatia_syn)[[1]] <- "Phy" #Fix column name
+rownames(domatia_syn) <- c() #Remove row names
+
+#Add synonyms to domatia dataset
+domatia <- rbind(domatia[, c("Domatia", "Phy", "matched_name")], domatia_syn[, c("Domatia", "Phy","matched_name")]) #Merge
+domatia$Phy <- trimws(domatia$Phy) #Trim white space from taxonomic names
+
+#Check if each domatia name is in the EFN, mycorrhizae, and range datasets
+domatia$RangeY <- domatia$Phy %in% range$Phy
+domatia$EFNY <- domatia$Phy %in% EFN$Phy
+#domatia$mycoY <- domatia$Phy %in% mycorrhizae$Phy #No domatia-bearing plants in mycorrhizal dataset
+
+write.csv(domatia, file="domatia_resolved.csv", row.names = FALSE)
+```
+
+Next, let's check the taxonomy of EFN-bearing plants.
+
+```{r Check taxonomic names for EFN dataset, including=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+#Not run
+#Do the same as above for the EFN data
+EFN_resolve <- as.data.frame(gnr_resolve(EFN[, "Phy"], best_match_only=TRUE))
+EFN_resolve$num_words <- str_count(EFN_resolve$matched_name, " ")+1
+EFN <- merge(EFN, EFN_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+EFN$matched_name <- ifelse(EFN$num_words == 1, NA, EFN$matched_name)
+EFN$matched_name <- ifelse(!is.na(EFN$matched_name), paste0(word(EFN$matched_name, 1, 1), " ", tolower(word(EFN$matched_name, 2, 2))), EFN$matched_name)
+EFN$diff <- EFN$Phy == EFN$matched_name #Check changes between original and matched names
+
+#Find synonyms for resolved names
+#I had trouble getting this to work consistently so I retrieved the synonyms in batches
+EFN_synonyms_pow1 <- synonyms(EFN[1:100,"matched_name"], db="pow") #Get synonyms
+EFN_synonyms_pow2 <- synonyms(EFN[101:200,"matched_name"], db="pow")
+EFN_synonyms_pow3 <- synonyms(EFN[201:400,"matched_name"], db="pow")
+EFN_synonyms_pow4 <- synonyms(EFN[401:826,"matched_name"], db="pow")
+EFN_synonyms_pow <- c(EFN_synonyms_pow1, EFN_synonyms_pow2, EFN_synonyms_pow3, EFN_synonyms_pow4)
+EFN_syn <- do.call(rbind, EFN_synonyms_pow)
+EFN_syn$matched_name <- gsub('[^-[:^punct:]]', '', (gsub('[[:digit:]]+', '', row.names(EFN_syn))), perl=TRUE)
+EFN_syn <- subset(EFN_syn, rank == "SPECIES") #Keep on species (not varieties)
+colnames(EFN_syn)[2] <- "synonym" #Fix column name
+
+#Determine if original names and synonyms are in domatia, mycorrhizae, and range datasets
+EFN_syn$syndomY <- EFN_syn$synonym %in% domatia$Phy 
+EFN_syn$synrangeY <- EFN_syn$synonym %in% range$Phy
+EFN_syn$synmycoY <- EFN_syn$synonym %in% mycorrhizae$Phy
+write.csv(EFN_syn, "efn_synonyms.csv")
+EFN_syn <- subset(EFN_syn, EFN_syn$syndomY | EFN_syn$synrangeY | EFN_syn$synmycoY) #Subset if synonyms match other datasets
+EFN_syn$EFN <- 1 #Add trait
+EFN_syn <- subset(EFN_syn, !is.na(synonym))
+colnames(EFN_syn)[[2]] <- "Phy" #Fix column name
+
+#Add synonyms to EFN dataset
+EFN <- rbind(EFN[, c("EFN", "Phy", "matched_name")], EFN_syn[, c("EFN", "Phy","matched_name")]) #Merge
+EFN$Phy <- trimws(EFN$Phy) #Trim white space from taxonomic names
+
+#Check if each EFN name is in the EFN, mycorrhizae, and range datasets
+EFN$RangeY <- EFN$Phy %in% range$Phy
+EFN$domY <- EFN$Phy %in% domatia$Phy
+EFN$mycoY <- EFN$Phy %in% mycorrhizae$Phy #No EFN-bearing plants in mycorrhizal dataset
+
+write.csv(EFN, file="efn_resolved.csv", row.names=FALSE)
+```
+
+Merge the EFN and domatia datasets.
+
+```{r Merge EFN and domatia, warning=FALSE, message=FALSE}
+#Read in taxonomically resolved EFN and domatia datasets
+EFN <- read.csv("efn_resolved.csv")
+domatia <- read.csv("domatia_resolved.csv")
+
+#Further cleaning of EFN and domatia datasets to 
+colnames(EFN)[[3]] <- "matched_name_EFN"
+colnames(domatia)[[3]] <- "matched_name_domatia"
+domatia$diff <- domatia$Phy == domatia$matched_name_domatia 
+EFN$diff <- EFN$Phy == EFN$matched_name_EFN
+EFN <- subset(EFN, !is.na(diff))
+EFN$matches <- EFN$RangeY+EFN$domY+EFN$mycoY
+EFN <- subset(EFN, matches > 0)
+EFN <- EFN[!duplicated(EFN), ]
+#tmp <- EFN[duplicated(EFN$matched_name_EFN), ]
+EFN <- EFN[!duplicated(EFN$matched_name_EFN),]
+
+#Merge 
+EFN_dom <- merge(EFN[,c("EFN", "Phy", "matched_name_EFN")], domatia[,c("Domatia", "Phy")], by="Phy", all=TRUE)
+
+#Add zeros instead of NAs for traits
+EFN_dom$EFN <- ifelse(is.na(EFN_dom$EFN), 0, EFN_dom$EFN)
+EFN_dom$Domatia <- ifelse(is.na(EFN_dom$Domatia), 0, EFN_dom$Domatia)
+```
+
+Next, we'll check the taxonomy of the legumes for which we have data on mycorrhizae. 
+
+```{r Check taxonomic names for mycorrhizae dataset, warning=FALSE, message=FALSE, eval=FALSE}
+#Not run
+#Resolve names
+mycorrhizae_resolve <- as.data.frame(gnr_resolve(mycorrhizae[, "Phy"], best_match_only=TRUE))
+mycorrhizae_resolve$num_words <- str_count(mycorrhizae_resolve$matched_name, " ")+1
+mycorrhizae <- merge(mycorrhizae, mycorrhizae_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+mycorrhizae$matched_name <- ifelse(mycorrhizae$num_words == 1, NA, mycorrhizae$matched_name)
+mycorrhizae$matched_name <- ifelse(!is.na(mycorrhizae$matched_name), paste0(word(mycorrhizae$matched_name, 1, 1), " ", tolower(word(mycorrhizae$matched_name, 2, 2))), mycorrhizae$matched_name)
+
+#Find synonyms for resolved names
+mycorrhizae_synonyms_pow <- synonyms(mycorrhizae$matched_name, db="pow")
+mycorrhizae_syn <- do.call(rbind, mycorrhizae_synonyms_pow)
+mycorrhizae_syn$matched_name <- gsub('[^-[:^punct:]]', '', (gsub('[[:digit:]]+', '', row.names(mycorrhizae_syn))), perl=TRUE)
+mycorrhizae_syn <- subset(mycorrhizae_syn, rank == "SPECIES") #Keep on species (not varieties)
+colnames(mycorrhizae_syn)[2] <- "synonym" #Fix column name
+
+#Determine if original names and synonyms are in EFN, domatia, and range datasets
+mycorrhizae_syn$syndomY <- mycorrhizae_syn$synonym %in% domatia$Phy 
+mycorrhizae_syn$synrangeY <- mycorrhizae_syn$synonym %in% range$Phy
+mycorrhizae_syn$synefnY <- mycorrhizae_syn$synonym %in% EFN$Phy
+write.csv(mycorrhizae_syn, "mycorrhizae_synonyms.csv")
+
+mycorrhizae_syn <- subset(mycorrhizae_syn, mycorrhizae_syn$syndomY | mycorrhizae_syn$synrangeY | mycorrhizae_syn$synefnY) #Subset if synonyms match other datasets
+mycorrhizae_syn <- subset(mycorrhizae_syn, !is.na(synonym))
+colnames(mycorrhizae_syn)[[2]] <- "Phy" #Fix column name
+
+#Add synonyms to mycorrhizae dataset
+mycorrhizae_syn <- merge(mycorrhizae[, c("matched_name", "Consensus.mycorrhizal.state")], mycorrhizae_syn, by="matched_name", all.x=FALSE, all.y=TRUE)
+mycorrhizae <- rbind(mycorrhizae[, c("Consensus.mycorrhizal.state", "Phy", "matched_name")], mycorrhizae_syn[, c("Consensus.mycorrhizal.state", "Phy","matched_name")]) #Merge
+mycorrhizae$Phy <- trimws(mycorrhizae$Phy) #Trim white space from taxonomic names
+
+#Check if each mycorrhizae name is in the EFN, domatia, and range datasets
+mycorrhizae$RangeY <- mycorrhizae$Phy %in% range$Phy
+mycorrhizae$domY <- mycorrhizae$Phy %in% domatia$Phy
+mycorrhizae$efnY <- mycorrhizae$Phy %in% EFN$Phy 
+
+write.csv(mycorrhizae, file="mycorrhizae_resolved.csv", row.names=FALSE)
+```
+
+Merge the EFN and domatia dataset with the mycorrhizae dataset.
+
+```{r Merge EFN, domatia, and mycorrhizae data, warning=FALSE, message=FALSE}
+#Read in taxonomically resolved mycorrhizal dataset
+mycorrhizae <- read.csv("mycorrhizae_resolved.csv")
+
+#Further cleaning of mycorrhizal dataset
+colnames(mycorrhizae)[[3]] <- "matched_name_myco"
+mycorrhizae$diff <- mycorrhizae$Phy == mycorrhizae$matched_name_myco
+mycorrhizae$matches <-mycorrhizae$RangeY+mycorrhizae$domY+mycorrhizae$efnY
+#tmp <- mycorrhizae[duplicated(mycorrhizae$matched_name_myco), ]
+mycorrhizae <- mycorrhizae[!duplicated(mycorrhizae$matched_name_myco),]
+
+#Merge 
+EFN_dom_myco <- merge(mycorrhizae[, c("Consensus.mycorrhizal.state","Phy", "matched_name_myco")], EFN_dom, by="Phy", all=TRUE)
+```
+
+Finally, we'll check the taxonomy of the range dataset.
+
+```{r Check taxonomic names for range dataset, message=FALSE, warning=FALSE, eval=FALSE}
+#Not run
+#Resolve names
+range_resolve <- as.data.frame(gnr_resolve(range[, "Phy"], best_match_only=TRUE))
+range_resolve$num_words <- str_count(range_resolve$matched_name, " ")+1
+range <- merge(range, range_resolve, by.y = "user_supplied_name", by.x = "Phy", all.x=TRUE)
+range$matched_name <- ifelse(range$num_words == 1, NA, range$matched_name)
+range$matched_name <- ifelse(!is.na(range$matched_name), paste0(word(range$matched_name, 1, 1), " ", tolower(word(range$matched_name, 2, 2))), range$matched_name)
+range$diff <- range$matched_name == range$Phy #Only one difference and spelling doesn't affect trait data (because taxon is not in EFN/dom/myco dataset)
+
+write.csv(range, file="range_resolved.csv", row.names=FALSE)
+
+#We don't really need to check synonyms, because we've already checked the synonyms of the matching datasets, and our goals with considering synonyms is just to make sure we match trait and range data correctly
+```
+
+Merge the mutualistic trait data with the range dataset.
+
+```{r Merge full legume datasets, warning=FALSE, message=FALSE}
+range <- read.csv("range_resolved.csv")
+
+legume_range_df <- merge(range, EFN_dom_myco, all.x="TRUE", all.y="FALSE", by= "Phy") #Put all the data in one dataframe
+legume_range_df$EFN <- ifelse(is.na(legume_range_df$EFN), 0, legume_range_df$EFN) #Add zeros for NAs in EFN trait
+legume_range_df$Domatia <- ifelse(is.na(legume_range_df$Domatia), 0, legume_range_df$Domatia) #Add zeros for NAs in domatia trait
+write.csv(legume_range_df, file="legume_range_traits.csv", row.names = FALSE)
+```
+
+### Summarize legume dataset
+We are finally finished cleaning the dataset, and now simply have to summarize, visualize, and model.
+
+First, let's summarize how many species we have in each category. How many legumes with vs. without EFNs do we have range size data for, and how many introduced ranges have they been introduced to, on average? 
+
+```{r Summarize legume EFN data in a table, warning=FALSE, message=FALSE}
+#Make factors factors
+legume_range_df$EFN <- as.factor(legume_range_df$EFN)
+legume_range_df$Domatia <- as.factor(legume_range_df$Domatia)
+legume_range_df$fixer <- as.factor(legume_range_df$fixer)
+legume_range_df$Consensus.mycorrhizal.state <- as.factor(legume_range_df$Consensus.mycorrhizal.state)
+legume_range_df$annual <- as.numeric(legume_range_df$annual)
+
+##Collapse all mycorrhizal fungi types into a single yes/no category
+legume_range_df$myco <- ifelse(legume_range_df$Consensus.mycorrhizal.state == "AM" | legume_range_df$Consensus.mycorrhizal.state == "AMNM" | legume_range_df$Consensus.mycorrhizal.state == "EM", 1, ifelse(legume_range_df$Consensus.mycorrhizal.state == "NM", 0, NA))
+legume_range_df$myco <- as.factor(legume_range_df$myco)
+
+df <- legume_range_df
+
+summary.efn <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.efn)
+```
+
+How many legumes with vs. without domatia do we have range size data for? 
+
+```{r Summarize legume domatia data in a table, warning=FALSE, message=FALSE}
+summary.dom <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.dom)
+```
+
+How many legumes that do vs. do not form nodules do we have range size data for? 
+
+```{r Summarize legume nodulation data in a table, warning=FALSE, message=FALSE}
+summary.fix <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.fix)
+```
+
+How many legumes do vs. do not associate with mycorrhizae do we have range size data for?
+
+```{r Summarize legume mycorrhizal data in a table, warning=FALSE, message=FALSE}
+summary.myco <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(myco) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+kable(summary.myco)
+```
+
+### Make figures
+
+#### Number of introduced ranges
+Our measure of ecological success for legumes is the number of new ranges they have been successfully introduced to. 
+
+##### Dots and whiskers
+
+```{r Dot and whisker plots, warning=FALSE, message=FALSE, fig.width=8, fig.height=6, dpi=300}
+pt_size <- 3
+y_limits <- c(-1, 20)
+er_width <- 0.1
+y_text <- -0.5
+
+p_EFN <- ggplot(data=summary.efn, aes(x=EFN, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_dom <- ggplot(data=summary.dom, aes(x=Domatia, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_fix <- ggplot(data=summary.fix, aes(x=fixer, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+
+p_myco <- ggplot(data=subset(summary.myco, !is.na(myco)), aes(x=myco, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=myco, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Mycorrhizae")+geom_text(aes(x=myco, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))
+
+fig1 <- plot_grid(p_EFN, p_dom, p_myco, p_fix)
+fig1
+save_plot("MEF_figure1.pdf", fig1, base_height=6)
+
+summary.myco2 <- ungroup(subset(legume_range_df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(Consensus.mycorrhizal.state) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+
+p_myco_sup <- ggplot(data=subset(summary.myco2, !is.na(Consensus.mycorrhizal.state)), aes(x=Consensus.mycorrhizal.state, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Consensus.mycorrhizal.state, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Mycorrhizal state")+geom_text(aes(x=Consensus.mycorrhizal.state, y= 0.1, label=n))+scale_y_continuous(limits=c(0, 12.5))
+p_myco_sup
+save_plot("MEF_figureS1.pdf", p_myco_sup, base_height=6)
+```
+
+##### Multiple mutualisms
+
+What about when we look at the influence of multiple mutualisms on legume range size? First up, the influence of one versus two mutualisms:
+
+```{r Multiple mutualism plots, warning=FALSE, message=FALSE, fig.width=8, fig.height=8, dpi=300}
+y_limits <- c(-1,20)
+
+summary.efnfix <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efnfix$trait <- paste0(summary.efnfix$EFN, summary.efnfix$fixer)
+
+p_efnfix <- ggplot(data=summary.efnfix, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor nodules", "Nodules only\n (no EFNs)", "EFNs only\n (no nodules)", "Both EFNs\n and nodules"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.efndom <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efndom$trait <- paste0(summary.efndom$EFN, summary.efndom$Domatia)
+
+p_efndom <- ggplot(data=summary.efndom, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor domatia", "Domatia only\n (no EFNs)", "EFNs only\n (no domatia)", "Both EFNs\n and domatia"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.efnmyco <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(EFN, myco) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efnmyco$trait <- paste0(summary.efnmyco$EFN, summary.efnmyco$myco)
+
+p_efnmyco <- ggplot(data=subset(summary.efnmyco, !is.na(myco)), aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Neither EFNs\nnor mycorrhizae", "Mycorrhizae only\n (no EFNs)", "Both EFNs\n and mycorrhizae"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+summary.mycofix <- ungroup(subset(legume_range_df, !is.na(num_introduced)) %>% group_by(myco, fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.mycofix$trait <- paste0(summary.mycofix$fixer, summary.mycofix$myco)
+
+p_mycofix <- ggplot(data=subset(summary.mycofix, !is.na(myco)), aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Mycorrhizae only", "Nodules only", "Both nodules\n and mycorrhizae"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+
+fig2 <- plot_grid(p_efndom, p_efnfix, p_efnmyco, p_mycofix, labels="AUTO")
+fig2
+save_plot("MEF_figure2.pdf", fig2, base_height=6)
+```
+
+Next, the influence of three versus two versus one mutualism:
+
+```{r Three mutualisms versus two, warning=FALSE, message=FALSE, fig.width=6, fig.height=4, dpi=300}
+summary.all2 <- ungroup(subset(legume_range_df, !is.na(myco)) %>% group_by(myco, fixer, EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.all2$trait <- paste0(summary.all2$myco, summary.all2$fixer, summary.all2$EFN)
+
+p_3 <- ggplot(data=summary.all2, aes(x=trait, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=trait, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits")+scale_x_discrete(labels=c("Nodules only", "Mycorrhizae only", "Mycorrhizae\n and EFNs\n (no nodules)", "Mycorrhizae\n and nodules\n (no EFNs)", "Mycorrhizae, \nnodules, \nand EFNs"))+scale_y_continuous(limits=y_limits)+geom_text(aes(x=trait, y= y_text, label=n))
+p_3
+
+save_plot("MEF_figure3.pdf", p_3, base_height=6)
+```
+
+We can also look at the data on multiple mutualisms slightly differently. 
+
+```{r Number of mutualisms, warning=FALSE, message=FALSE, fig.width=6, fig.height=4, dpi=300}
+legume_range_df$num_mutualisms <- as.numeric(as.character(legume_range_df$fixer))+as.numeric(as.character(legume_range_df$EFN))+as.numeric(as.character(legume_range_df$myco))+as.numeric(as.character(legume_range_df$Domatia))
+
+summary.mnum <- subset(legume_range_df, !is.na(num_mutualisms)) %>% group_by(num_mutualisms) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n))
+summary.mnum$num_mutualisms <- as.factor(summary.mnum$num_mutualisms)
+
+p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+scale_y_continuous(limits=y_limits)+geom_text(aes(x=num_mutualisms, y= y_text, label=n))
+p_num_mutualisms
+
+save_plot("MEF_figure4.pdf", p_num_mutualisms, base_height = 4)
+```
+
+##### Violin plots
+The number of introduced ranges is a very non-normal response variable, so it is also helpful to look at the underlying data distribution. 
+
+```{r Violin plots for number introduced ranges, warning=FALSE, message=FALSE, fig.height=8, fig.width=8, dpi=300}
 hues <- c("#af8dc3", "#7fbf7b")
 colours <- c("#af8dc3", "#7fbf7b", "#f0e442", "#0072b2")
 
 #EFNs
-fig1a <- ggplot(data=range_EFN_domatia)+
+fig1a <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(num_introduced+1)), alpha=0.7)+
@@ -79,10 +414,9 @@ fig1a <- ggplot(data=range_EFN_domatia)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1a
 
 #Domatia
-fig1b <- ggplot(data=range_EFN_domatia)+
+fig1b <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=(num_introduced+1)), alpha=0.7)+
@@ -92,14 +426,10 @@ fig1b <- ggplot(data=range_EFN_domatia)+
   ylab("Introduced ranges (no. + 1)")+
   stat_summary(aes(x=Domatia, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
-  theme(legend.position = "none")+
-  scale_y_log10()
-#fig1b
+  theme(legend.position = "none")
 
 #Nodules
-range$fixer <- as.factor(range$fixer)
-
-fig1c <- ggplot(data=range)+
+fig1c <- ggplot(data=legume_range_df)+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(num_introduced+1)), alpha=0.7)+
@@ -111,32 +441,32 @@ fig1c <- ggplot(data=range)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1c
 
 #Mycorrhizae
-fig1d <- ggplot(data=range_myco)+
-  scale_fill_manual(values=colours) +
-  scale_colour_manual(values=colours) +
-  geom_violin(aes(color=Consensus.mycorrhizal.state, fill=Consensus.mycorrhizal.state, x=Consensus.mycorrhizal.state, y=(num_introduced+1)), alpha=0.7)+
-  scale_x_discrete(labels = waiver()) + 
-  xlab("Mycorrhizal state") + 
+fig1d <- ggplot(data=subset(legume_range_df, !is.na(myco)))+
+  scale_fill_manual(values=hues) +
+  scale_colour_manual(values=hues) +
+  geom_violin(aes(color=myco, fill=myco, x=myco, y=(num_introduced+1)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Mycorrhizae") + 
   ylab("Introduced ranges (no. + 1)")+
-  stat_summary(aes(x=Consensus.mycorrhizal.state, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
+  stat_summary(aes(x=myco, y=(num_introduced+1)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig1d
 
 fig1 <- plot_grid(fig1a, fig1b, fig1c, fig1d, labels="AUTO",  ncol = 2, nrow = 2)
 fig1
-ggsave(fig1, device = "jpeg", filename = "Fig1.jpg")
+save_plot("Fig1.pdf", fig1, base_height=8)
 ```
 
-## Native range area
+#### Native range area
+It is also interesting to produce the same figures for legume native ranges. 
 
-```{r native range area, message=FALSE, warning=FALSE}
+```{r Violin plots for legume native range area, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, dpi=300}
 #EFNs
-fig2a <- ggplot(data=range_EFN_domatia)+
+fig2a <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=EFN, fill=EFN, x=EFN, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -148,10 +478,9 @@ fig2a <- ggplot(data=range_EFN_domatia)+
   theme(legend.position = "none")+
   stat_summary(aes(x=EFN, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   scale_y_log10()
-#fig2a
 
 #Domatia
-fig2b <- ggplot(data=range_EFN_domatia)+
+fig2b <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=Domatia, fill=Domatia, x=Domatia, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -163,10 +492,9 @@ fig2b <- ggplot(data=range_EFN_domatia)+
   theme(legend.position = "none")+
   stat_summary(aes(x=Domatia, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   scale_y_log10()
-#fig2b
 
 #Nodules
-fig2c <- ggplot(data=range)+
+fig2c <- ggplot(data=subset(legume_range_df, !is.na(total_area_native)))+
   scale_fill_manual(values=hues) +
   scale_colour_manual(values=hues) +
   geom_violin(aes(color=fixer, fill=fixer, x=fixer, y=(total_area_native/1e+6)), alpha=0.7)+
@@ -178,207 +506,113 @@ fig2c <- ggplot(data=range)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig2c
 
 #Mycorrhizae
-fig2d <- ggplot(data=range_myco)+
+fig2d <- ggplot(data=subset(legume_range_df, !is.na(total_area_native) & !is.na(myco)))+
   scale_fill_manual(values=colours) +
   scale_colour_manual(values=colours) +
-  geom_violin(aes(color=Consensus.mycorrhizal.state, fill=Consensus.mycorrhizal.state, x=Consensus.mycorrhizal.state, y=(total_area_native/1e+6)), alpha=0.7)+
-  scale_x_discrete(labels = waiver()) + 
-  xlab("Mycorrhizal state") + 
+  geom_violin(aes(color=myco, fill=myco, x=myco, y=(total_area_native/1e+6)), alpha=0.7)+
+  scale_x_discrete(breaks=c("0","1"),
+                   labels=c("No", "Yes")) + 
+  xlab("Mycorrhizae") + 
   ylab("Native range area (sq. km)")+
-  stat_summary(aes(x=Consensus.mycorrhizal.state, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
+  stat_summary(aes(x=myco, y=(total_area_native/1e+6)), fun="mean", geom="crossbar", width=0.25)+
   theme_cowplot() +
   theme(legend.position = "none")+
   scale_y_log10()
-#fig2d
 
 fig2 <- plot_grid(fig2a, fig2b, fig2c, fig2d, labels="AUTO", ncol = 2, nrow = 2)
 fig2
-ggsave(fig2, device = "jpeg", filename = "Fig2.jpg")
-
+save_plot("Fig2.pdf", fig2, base_height=8)
 ```
 
-## Preparing dataset for pgls analysis
+### Statistical models
+
+#### Preparing dataset for pgls analysis
 
 ```{r PGLS, warning=FALSE, message=FALSE}
-range_EFN_domatia$Phy <- as.character(range_EFN_domatia$Phy)
+legume_range_df$Phy <- paste0(as.character(word(legume_range_df$matched_name, 1, 1)), "_", as.character(word(legume_range_df$matched_name, 2, 2)))
 zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
-phyint <- intersect(zanne$tip.label, range_EFN_domatia$Phy)  
-phydiff <- setdiff(zanne$tip.label, range_EFN_domatia$Phy)
+phyint <- intersect(zanne$tip.label, legume_range_df$Phy)  
+phydiff <- setdiff(zanne$tip.label, legume_range_df$Phy)
 pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
 
-range_ed_pgls <- range_EFN_domatia[range_EFN_domatia$Phy %in% phyint, ]
-range_ed_pgls <- range_ed_pgls[complete.cases(range_ed_pgls), ] #removing NA elements
+range_pgls <- legume_range_df[legume_range_df$Phy %in% phyint, ]
+#colnames(range_pgls)
+range_pgls <-range_pgls[,-c(16,17,19,21, 22)]
+range_pgls <- range_pgls[complete.cases(range_pgls[, 1:17]), 1:17] #removing NA elements
 ```
 
-## Statistical models for EFN and domatia
+#### Statistical models for EFN, domatia, and rhizobia
+
+####PGLS
+The problem with PGLS models is that lose a lot of trait data for species not in the phylogeny. We either need a better phylogeny or a non-phylogenetic model. 
 
 ```{r models1, warning=FALSE, message=FALSE}
-#PGLS of number of introduced ranges as response variable with EFNs and domatia, 
+#PGLS of number of introduced ranges as response variable with EFNs, domatia, and nodules, 
 #interaction and other covariates
+#Interactions that were not significant were removed
 
-
-p2 <- gls(log(num_introduced + 1) ~ EFN + Domatia + EFN*Domatia + 
-            total_area_native + abs_lat_native + annual + uses_num_uses, 
+pgls1 <- gls(log(num_introduced + 1) ~  EFN+fixer+Domatia+
+            total_area_native + abs_lat_native + uses_num_uses, 
             correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), 
-            method = "ML", data = range_ed_pgls) 
-summary(p2)
-
-#EFN significant positive, domatia and interaction not significant
+            method = "ML", data = range_pgls) 
+summary(pgls1)
 
 #Diagnostic plots
-plot(p2$residuals, p2$fitted)
-qqnorm(p2$residuals)
-qqline(p2$residuals)
-
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p3 <- glm(num_introduced ~ EFN + Domatia + EFN*Domatia + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_ed_pgls)
-summary(p3)
-
-#Analysis for area introduced
-#PGLS with both EFN and domatia, interaction and covariates
-
-#PGLS with both EFN and Domatia, interaction, covariates
-p5 <- gls(log((total_area_introduced/1e+6)+1) ~ EFN + Domatia + EFN*Domatia+ total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_ed_pgls) 
-summary(p5)
-
-
-plot(p5$residuals, p5$fitted)
-qqnorm(p5$residuals)
-qqline(p5$residuals)
-
+plot(pgls1$residuals, pgls1$fitted)
+qqnorm(pgls1$residuals)
+qqline(pgls1$residuals)
 
 #Repeating for native area
 #PGLS with both EFN presence and fixer, interaction and covariates
-p6 <- gls(log((total_area_native/1e+6) + 1) ~ EFN + Domatia + EFN*Domatia + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_ed_pgls)
-summary(p6)
-#all effects non-significant
-
+pgls2 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls)
+summary(pgls2)
 
 #Diagnostic plots
-plot(p6$residuals, p6$fitted)
-qqnorm(p6$residuals)
-qqline(p6$residuals)
-
+plot(pgls2$residuals, pgls2$fitted)
+qqnorm(pgls2$residuals)
+qqline(pgls2$residuals)
 ```
 
-## Statistical models for Rhizobial symbiosis
+#### Mixed models
 
-```{r models2, warning=FALSE, message=FALSE}
-range$Phy <- as.character(range$Phy)
-phyint <- intersect(zanne$tip.label, range$Phy)  
-phydiff <- setdiff(zanne$tip.label, range$Phy)
-pruned.tree.pgls <- drop.tip(zanne, phydiff)
+```{r glmm}
+legume_range_df$genus <- as.factor(word(legume_range_df$Phy, 1, 1, sep="_"))
 
-range_pgls <- range[range$Phy %in% phyint, ]
-range_pgls <- range_pgls[complete.cases(range_pgls), ]
+legume_range_df$introducedY <- ifelse(legume_range_df$num_introduced > 0, 1, 0)
 
-#PGLS of number of introduced ranges as response variable withd rhizobial symbiosis
-#and other covariates
-p8 <- gls(log(num_introduced + 1) ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls) 
-summary(p8)
+binomial1 <- glmer(introducedY~EFN+Domatia+fixer+annual+abs_lat_native+uses_num_uses+(1|genus), data=legume_range_df, family="binomial") 
+summary(binomial1)
+Anova(binomial1, type=3)
+plot(binomial1)
 
-#Not significant
+legume_range_df_introducedY <- subset(legume_range_df, num_introduced >0)
+hist(log(legume_range_df_introducedY$num_introduced))
 
-#Diagnostic plots
-plot(p8$residuals, p8$fitted)
-qqnorm(p8$residuals)
-qqline(p8$residuals)
-
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p9 <- glm(num_introduced ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_pgls)
-summary(p9)
-
-#Results qualitatively similar
-
-#Analysis for area introduced
-p10 <- gls(log((total_area_introduced/1e+6)+1) ~ fixer + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls) 
-
-summary(p10)
-#EFN significant positive, fixer and interaction not significant
-
-plot(p10$residuals, p10$fitted)
-qqnorm(p10$residuals)
-qqline(p10$residuals)
-
-
-#Repeating for native area
-
-p11 <- gls(log((total_area_native/1e+6) + 1) ~ fixer + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy), method = "ML", data = range_pgls)
-summary(p11)
-#all mutualism effects non-significant
-
-
-plot(p11$residuals, p11$fitted)
-qqnorm(p11$residuals)
-qqline(p11$residuals)
-
+lmer1 <- lmer(log(num_introduced)~EFN+Domatia+fixer+abs_lat_native+total_area_native+annual+uses_num_uses+(1|genus), data=legume_range_df_introducedY)
+summary(lmer1)
+Anova(lmer1, type=3)
+plot(lmer1)
 ```
-## Statistical models for mycorrhizae
+
+#### Statistical models for mycorrhizae
 
 ```{r models3, warning=FALSE, message=FALSE }
+range_myco <- subset(legume_range_df, !is.na(myco))
 range_myco$Phy <- as.character(range_myco$Phy)
 phyint1 <- intersect(zanne$tip.label, range_myco$Phy)  
 phydiff1 <- setdiff(zanne$tip.label, range_myco$Phy)
 pruned.myco.pgls <- drop.tip(zanne, phydiff1) #dropping tips not in the dataset
 
 range_myco_pgls <- range_myco[range_myco$Phy %in% phyint1, ]
-range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ]
-
+colnames(range_myco_pgls)
+range_myco_pgls <-range_myco_pgls[,-c(17,19)]
+range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls[, 1:22]), 1:22] #removing NA elements
 
 #PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-p12 <- gls(log(num_introduced + 1) ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
-summary(p12)
-
-#Neither mutualism nor interaction significant
-
-#Diagnostic plots
-plot(p12$residuals, p12$fitted)
-qqnorm(p12$residuals)
-qqline(p12$residuals)
-
-anova12 <- Anova(p12, type = 3)
-
-#Running a linear model with a quasipoisson distribution on number of introduced ranges
-
-p13 <- glm(num_introduced ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, family="quasipoisson", data=range_myco_pgls)
-summary(p13)
-
-#Results qualitatively similar
-
-#Analysis for area introduced
-#PGLS with both domatia presence and fixer, interaction and covariates
-#range_myco_pgls <- na.omit(range_myco_pgls)
-#range_myco_pgls$Consensus.mycorrhizal.state <- as.factor(range_myco_pgls$Consensus.mycorrhizal.state)
-#range_myco_pgls$fixer <- as.factor(range_myco_pgls$fixer)
-######this model didin't run
-#p14 <- gls(log((total_area_introduced/1e+6) + 1)~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
-
-#summary(p14)
-#EFN significant positive, fixer and interaction not significant
-
-#plot(p14$residuals, p14$fitted)
-#qqnorm(p14$residuals)
-#qqline(p14$residuals)
-
-
-#Repeating for native area
-#PGLS with mycorrhizae and covariates
-
-p15 <- gls(log((total_area_native/1e+6) + 1) ~ Consensus.mycorrhizal.state + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls)
-summary(p15)
-
-
-plot(p15$residuals, p15$fitted)
-qqnorm(p15$residuals)
-qqline(p15$residuals)
-
-anova15 <- Anova(p15, type = 3)
-anova15
+pgls3 <- gls(log(num_introduced + 1) ~ Consensus.mycorrhizal.state + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy), method = "ML", data = range_myco_pgls) 
+summary(pgls3)
 
 ```
 
@@ -409,8 +643,40 @@ efn_area <- merge(nat_inv_area_lat, antefn, by.y = "Phy", all = FALSE)
 efn_dom_area <- merge(efn_area, antdom, by.y = "Phy", all = FALSE)
 efn_dom_seed_area <- merge(efn_dom_area, antseed, by.y = "Phy", all = FALSE)
 area <- efn_dom_seed_area
+area$EFN <- as.factor(area$EFN)
+area$Seed_Dispersal <- as.factor(area$Seed_Dispersal)
+area$Domatia <- as.factor(area$Domatia)
 #write.csv(area, "ants_nat_alien_mutualismcombined.csv")
+```
 
+```{r}
+pt_size <- 3
+y_limits <- c(-10000, 4.5e+6)
+er_width <- 0.1
+y_text <- -0.5
+
+summary.ant.efn <- area %>% group_by(EFN) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_antEFN
+
+summary.ant.dom <- area %>% group_by(Domatia) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_antdom <- ggplot(data=summary.ant.dom, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_antdom
+
+summary.ant.elaiosome <- area %>% group_by(Seed_Dispersal) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+
+p_elaiosome <- ggplot(data=summary.ant.elaiosome, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_elaiosome
+
+fig3 <- plot_grid(p_antEFN, p_antdom, p_elaiosome)
+fig3
+save_plot("MEF_figure3.pdf", fig3, base_height=6)
+
+```
+
+```{r}
 
 #Making figures
 
