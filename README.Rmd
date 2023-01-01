@@ -19,6 +19,8 @@ knitr::opts_chunk$set(echo = TRUE)
 First, let's load the packages we'll use.
 
 ```{r packages, warning=FALSE, message=FALSE}
+install.packages("taxize")
+
 library(car)
 library(ape)
 library(geiger)
@@ -689,10 +691,12 @@ We obtained introduced and native range size data for ants from Benoit Guenard a
 ###Native range size
 antarea <- read.csv("Ant_species_native range.csv") #native area for ants
 invarea <- read.csv("invaded_area_ant_species.csv") #invaded area for ants - all types of introduction and all available data
+ncontig <- read.csv("Ant_noncontig.csv")
 abslat <- read.csv("absolute_native_lat_ants7Feb.csv") #Absolute midpoint latitude of native range
 
 #merging invaded and native area datasets
 nat_inv_area <- merge(invarea, antarea, by='Phy', all.y=TRUE) 
+nat_inv_area <- merge(nat_inv_area, ncontig, by='Phy')
 nat_inv_area$total.area.introduced <- ifelse(is.na(nat_inv_area$total.area.introduced), 0, nat_inv_area$total.area.introduced) #Make NAs zeros 
 nat_inv_area_lat <- merge(abslat[, c("Phy", "abs_lat_native")], nat_inv_area, by = 'Phy') #Add midpoint native latitude
 
