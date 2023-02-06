@@ -230,7 +230,7 @@ mycorrhizae$efnY <- mycorrhizae$Phy %in% EFN$Phy
 mycorrhizae$AM <- ifelse(mycorrhizae$mycorrhiza.type == "AM; others not addressed" | mycorrhizae$mycorrhiza.type == "AM; no others" | mycorrhizae$mycorrhiza.type == "EcM,AM", 1, 0)
 mycorrhizae$EM <- ifelse(mycorrhizae$mycorrhiza.type == "EcM; others not addressed" | mycorrhizae$mycorrhiza.type == "EcM; no others" | mycorrhizae$mycorrhiza.type == "EcM,AM", 1, 0)
 
-mycorrhizae.sum <- mycorrhizae %>% group_by(Phy, species, RangeY, domY, efnY) %>% summarize(n=n(), sum.AM = sum(AM), sum.EM=sum(EM))
+mycorrhizae.sum <- mycorrhizae %>% group_by(Phy, species, RangeY, domY, efnY) %>% dplyr::summarize(n=n(), sum.AM = sum(AM), sum.EM=sum(EM))
 mycorrhizae.sum$AM <- ifelse(mycorrhizae.sum$sum.AM > 0, "Y", "N")
 mycorrhizae.sum$EM <- ifelse(mycorrhizae.sum$sum.EM > 0, "Y", "N")
 mycorrhizae.sum$match <- ifelse(mycorrhizae.sum$Phy == mycorrhizae.sum$species, TRUE, FALSE)
@@ -245,7 +245,7 @@ Merge the EFN and domatia dataset with the mycorrhizae dataset.
 mycorrhizae <- read.csv("mycorrhizae_resolved.csv")
 
 #A little further cleaning of mycorrhizal dataset, to remove taxa that appear twice
-mycorrhizae <- mycorrhizae %>% group_by(Phy, RangeY, domY, efnY) %>% summarize(n.records=sum(n), sum.AM = sum(sum.AM), sum.EM=sum(sum.EM))
+mycorrhizae <- mycorrhizae %>% group_by(Phy, RangeY, domY, efnY) %>% dplyr::summarize(n.records=sum(n), sum.AM = sum(sum.AM), sum.EM=sum(sum.EM))
 mycorrhizae$AM <- ifelse(mycorrhizae$sum.AM > 0, "Y", "N")
 mycorrhizae$EM <- ifelse(mycorrhizae$sum.EM > 0, "Y", "N")
 
@@ -306,31 +306,31 @@ df <- legume_range_df
 #df$nathis <- df$annual + df$woody
 #df$nathis <- as.factor(df$nathis)
 
-summary.efn <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efn <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.efn)
 ```
 
 How many legumes with vs. without domatia do we have range size data for? 
 
 ```{r Summarize legume domatia data in a table, warning=FALSE, message=FALSE}
-summary.dom <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.dom <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.dom)
 ```
 
 How many legumes that do vs. do not form nodules do we have range size data for? 
 
 ```{r Summarize legume nodulation data in a table, warning=FALSE, message=FALSE}
-summary.fix <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.fix <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.fix)
 ```
 
 How many legumes do vs. do not associate with mycorrhizae do we have range size data for?
 
 ```{r Summarize legume mycorrhizal data in a table, warning=FALSE, message=FALSE}
-summary.myco <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(myco) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.myco <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(myco) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.myco)
 
-summary.myco2 <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(AM,EM) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
+summary.myco2 <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco)) %>% group_by(AM,EM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
 kable(summary.myco2)
 ```
 
@@ -351,12 +351,12 @@ y_inset_limits <- c(0,1)
 df$introducedY <- ifelse(df$num_introduced > 0, 1, 0) #Create binary variable for whether or not legume is introduced
 
 #EFN figure
-summary.efn <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(EFN) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.efn <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.efn)
 
 p_EFN <- ggplot(data=summary.efn, aes(x=EFN, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "***")
 
-summary.efn2 <- ungroup(df %>% group_by(EFN, introducedY) %>% summarize(n=n()))
+summary.efn2 <- ungroup(df %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
 summary.efn2.wide <- spread(summary.efn2, key = introducedY, value=n)
 colnames(summary.efn2.wide) <- c("EFN","Not_introduced",  "Introduced")
 summary.efn2.wide$total <- summary.efn2.wide$Not_introduced+summary.efn2.wide$Introduced
@@ -366,12 +366,12 @@ prop.efn <- paste0(summary.efn2.wide$Introduced, "/", summary.efn2.wide$total)
 inset_p_EFN <- ggplot(data=summary.efn2.wide, aes(x=EFN, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=EFN, y=0.05, label=prop.efn), color="white")
 
 #Domatia figure
-summary.dom <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(Domatia) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.dom <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.dom)
 
 p_dom <- ggplot(data=summary.dom, aes(x=Domatia, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "**")
 
-summary.dom2 <- ungroup(df %>% group_by(Domatia, introducedY) %>% summarize(n=n()))
+summary.dom2 <- ungroup(df %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
 summary.dom2.wide <- spread(summary.dom2, key = introducedY, value=n)
 colnames(summary.dom2.wide) <- c("Domatia","Not_introduced",  "Introduced")
 summary.dom2.wide$total <- summary.dom2.wide$Not_introduced+summary.dom2.wide$Introduced
@@ -381,12 +381,12 @@ prop.dom <- paste0(summary.dom2.wide$Introduced, "/", summary.dom2.wide$total)
 inset_p_dom <- ggplot(data=summary.dom2.wide, aes(x=Domatia, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.dom), color="white")
 
 #Nodules figure
-summary.fix <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(fixer) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.fix <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.fix)
 
 p_fix <- ggplot(data=summary.fix, aes(x=fixer, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "ns")
 
-summary.fix2 <- ungroup(df %>% group_by(fixer, introducedY) %>% summarize(n=n()))
+summary.fix2 <- ungroup(df %>% group_by(fixer, introducedY) %>% dplyr::summarize(n=n()))
 summary.fix2.wide <- spread(summary.fix2, key = introducedY, value=n)
 colnames(summary.fix2.wide) <- c("fixer","Not_introduced",  "Introduced")
 summary.fix2.wide$total <- summary.fix2.wide$Not_introduced+summary.fix2.wide$Introduced
@@ -396,18 +396,18 @@ prop.fix <- paste0(summary.fix2.wide$Introduced, "/", summary.fix2.wide$total)
 inset_p_fix <- ggplot(data=summary.fix2.wide, aes(x=fixer, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nodules")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=fixer, y=0.05, label=prop.fix), color="white")
 
 #Mycorrhizae figure
-summary.AM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(AM) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.AM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(AM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.AM)
 
 p_AM <- ggplot(data=summary.AM, aes(x=AM, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=AM, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("AM")+geom_text(aes(x=AM, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 13, label = "ns")
 
-summary.EM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(EM) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
+summary.EM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(EM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.EM)
 
 p_EM <- ggplot(data=summary.EM, aes(x=EM, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EM, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EM")+geom_text(aes(x=EM, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 13, label = "ns")
 
 #Or
-summary.AMEM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(AM, EM, introducedY) %>% summarize(n=n()))
+summary.AMEM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(AM, EM, introducedY) %>% dplyr::summarize(n=n()))
 summary.AMEM2.wide <- spread(summary.AMEM2, key = introducedY, value=n)
 colnames(summary.AMEM2.wide) <- c("AM", "EM","Not_introduced",  "Introduced")
 summary.AMEM2.wide$total <- summary.AMEM2.wide$Not_introduced+summary.AMEM2.wide$Introduced
@@ -432,21 +432,21 @@ y_limits <- c(-500000, 7e+12)
 er_width <- 0.1
 y_text <- 0
 
-summary.efn.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
+summary.efn.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
 
 p_EFN_area <- ggplot(data=summary.efn.area, aes(x=EFN, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
 
-summary.dom.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
+summary.dom.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
 kable(summary.dom.area)
 
 p_dom_area <- ggplot(data=summary.dom.area, aes(x=Domatia, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
 
-summary.fix.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
+summary.fix.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
 kable(summary.fix.area)
 
 p_fix_area <- ggplot(data=summary.fix.area, aes(x=fixer, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
 
-summary.myco.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(myco) %>% summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
+summary.myco.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(myco) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
 kable(summary.myco.area)
 
 p_myco_area <- ggplot(data=subset(summary.myco.area, !is.na(myco)), aes(x=myco, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=myco, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Mycorrhizae")+geom_text(aes(x=myco, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
@@ -465,24 +465,24 @@ y_limits <- c(-500000, 13e+12)
 er_width <- 0.1
 y_text <- 0
 
-summary.efn.dom.native <- ungroup(df %>% group_by(EFN, Domatia) %>% summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
+summary.efn.dom.native <- ungroup(df %>% group_by(EFN, Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
 p_EFN_dom_native <- ggplot(data=summary.efn.dom.native, aes(x=EFN, y=mean_native, color=Domatia))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native, color=Domatia), width=er_width)+ geom_line(aes(group=Domatia), linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("EFNs")+geom_text(aes(x=c(0.8,1.2,1.8,2.2), y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+scale_color_grey(labels=c("No", "Yes"))+theme(legend.position = c(0.1, 0.8))+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")+annotate("text", x = 1.5, y = 3.9e+12, label = "***")
 
-summary.dom.native <- ungroup(df %>% group_by(Domatia) %>% summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
+summary.dom.native <- ungroup(df %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
 p_dom_native <- ggplot(data=summary.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
 
-summary.fix.native <- ungroup(df %>% group_by(fixer) %>% summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
+summary.fix.native <- ungroup(df %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
 p_fix_native <- ggplot(data=summary.fix.native, aes(x=fixer, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
 
-summary.AM.native <- ungroup(df %>% group_by(AM) %>% summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
+summary.AM.native <- ungroup(df %>% group_by(AM) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 kable(summary.AM.native)
 
 p_AM_native <- ggplot(data=subset(summary.AM.native, !is.na(AM)), aes(x=AM, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=AM, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("AM")+geom_text(aes(x=AM, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
 
-summary.EM.native <- ungroup(df %>% group_by(EM) %>% summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
+summary.EM.native <- ungroup(df %>% group_by(EM) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 kable(summary.EM.native)
 
 p_EM_native <- ggplot(data=subset(summary.EM.native, !is.na(EM)), aes(x=EM, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=EM, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("EM")+geom_text(aes(x=EM, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
@@ -497,6 +497,15 @@ save_plot("Figure2.pdf", fig2, base_height = 4, base_width = 12)
 #### Preparing dataset for pgls analysis
 
 ```{r PGLS, warning=FALSE, message=FALSE}
+
+legume_range_df$EFN <- as.factor(legume_range_df$EFN)
+legume_range_df$Domatia <- as.factor(legume_range_df$Domatia)
+legume_range_df$fixer <- as.factor(legume_range_df$fixer)
+legume_range_df$AM <- as.factor(legume_range_df$AM)
+legume_range_df$EM <- as.factor(legume_range_df$EM)
+legume_range_df$annual <- as.numeric(legume_range_df$annual)
+legume_range_df$woody <- as.numeric(legume_range_df$woody)
+
 df$Phy2 <- paste0(as.character(word(legume_range_df$Phy, 1, 1)), "_", as.character(word(legume_range_df$Phy, 2, 2)))
 zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
 phyint <- intersect(zanne$tip.label, df$Phy2)  
@@ -506,7 +515,7 @@ pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
 range_pgls <- df[df$Phy2 %in% phyint, ]
 #colnames(range_pgls)
 #which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
-range_pgls <-range_pgls[,-c(8:11, 17:24, 26, 28)] #Remove some unneeded columns
+#range_pgls <-range_pgls[,-c(8:11, 17:24, 26, 28)] #Remove some unneeded columns
 range_pgls <- range_pgls[complete.cases(range_pgls), ] #removing NA elements
 ```
 
@@ -519,8 +528,34 @@ The problem with PGLS models is that we lose a lot of trait data for species not
 #interaction and other covariates
 #Interactions that were not significant were removed
 
-pgls1 <- gls(log(num_introduced + 1) ~  EFN+fixer+Domatia+total_area_native + abs_lat_native + uses_num_uses + woody + annual, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls) 
+pgls1 <- gls(log(num_introduced + 1) ~  factor(EFN, contrasts = list(EFN = contr.treatment))+
+               factor(fixer, contrasts = list(fixer = contr.treatment))+
+              factor(Domatia, contrasts = list(Domatia = contr.treatment))
+             +total_area_native + abs_lat_native + uses_num_uses + woody + annual, correlation = corAR1(phy = pruned.tree.pgls, form = ~ Phy2, method = "ML", data = range_pgls)) 
 summary(pgls1)
+
+## Two issues - something wrong with the log function when using range sizes, and something with
+##the categorical variables being used
+
+#correlation = corAR1(form = ~1|Phy2), method = "ML", data = range_pgls)
+
+
+pgls1 <- nlme::gls(log(num_introduced + 1) ~ factor(EFN, contrasts = list(EFN = contr.treatment))+
+               factor(fixer, contrasts = list(fixer = contr.treatment))+
+              factor(Domatia, contrasts = list(Domatia = contr.treatment))
+             +total_area_native + abs_lat_native + uses_num_uses + woody + annual,
+             correlation = corPhylog(tree = pruned.tree.pgls), method = "ML", data = range_pgls)
+
+pgls1 <- gls(log(num_introduced + 1) ~ as.numeric(EFN) +
+              total_area_native + abs_lat_native + uses_num_uses + woody + annual, 
+             correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), 
+             method = "ML", data = range_pgls) 
+
+model <- gls(y ~ x1 + factor(x2, contrasts = list(x2 = contr.treatment)) + factor(x3, contrasts = list(x3 = contr.treatment)) + x4, data = mydata)
+
+pgls1 <- gls(log(num_introduced + 1) ~ woody , correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls) 
+summary(pgls1)
+
 
 #Diagnostic plots
 plot(pgls1$residuals, pgls1$fitted)
@@ -529,10 +564,14 @@ qqline(pgls1$residuals)
 
 #PGLS of total introduced area
 pgls2 <- gls(log(total_area_introduced/1e+6 + 1) ~  EFN+Domatia+fixer+
-            total_area_native + abs_lat_native + uses_num_uses+nathis, 
+            total_area_native + abs_lat_native + uses_num_uses+ annual + woody, 
             correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), 
             method = "ML", data = range_pgls) 
 summary(pgls2)
+
+pgls2 <- gls(log(total_area_introduced/1e+6 + 1) ~  EFN, 
+            correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), 
+            method = "ML", data = range_pgls) 
 
 #Diagnostic plots
 plot(pgls2$residuals, pgls2$fitted)
@@ -541,7 +580,7 @@ qqline(pgls2$residuals)
 
 #Repeating for native area
 #PGLS with both EFN and domatia presence and fixer, interaction and covariates
-pgls3 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ nathis + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
+pgls3 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
 summary(pgls3)
 
 View(subset(range_pgls, EFN == 1 & Domatia == 1))
@@ -575,8 +614,8 @@ summary(pgls4)
 Another possible approach is to use mixed models with legume genus as a random effect to account for the non-independence of species in a genus. The response variables (number of introduced ranges and total introduced area) are very non-normal so we fit two models: a binomial GLMM modelling whether or not a legume species is introduced, and linear mixed models of the number of introduced ranges or total introduced area for introduced species only. 
 
 ```{r Legume mixed models, warning=FALSE, message=FALSE}
-df$genus <- as.factor(word(df$Phy2, 1, 1, sep="_")) #Extract legume genus
-is.na(df$woody)
+#df$genus <- as.factor(word(df$Phy2, 1, 1, sep="_")) #Extract legume genus
+#is.na(df$woody)
 
 #Checking correlation between variables
 df_cor <- data.frame(as.numeric(df$fixer), as.numeric(df$EFN), as.numeric(df$Domatia), as.numeric(df$EM), as.numeric(df$AM), #mutualisms
@@ -591,16 +630,16 @@ plotp <- corrplot(corr$P, type = "upper", order = "hclust",
          tl.col = "black", tl.srt = 45) #p-values
 
 #Fit binomial model for whether or not a legume species has been introduced
-binom <- glm(introducedY~woody, data=df, family="binomial")
-summary(binom)
 
-binomial1 <- glmer(introducedY~Domatia+EFN+fixer+scale(total_area_native)+woody+annual+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=df, family="binomial")
+
+binomial1 <- glmer(introducedY~fixer*uses_num_uses + fixer + EFN+Domatia+scale(total_area_native)+woody+annual+scale(abs_lat_native)+(1|tribe_ncbi), data=df, family="binomial",glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
 summary(binomial1) 
 Anova(binomial1, type=3)
 plot(binomial1)
+#EFN, Domatia interaction with human uses was non-significant
 
 #Fit binomial model without random effect
-binomial2 <- glm(introducedY~EFN+Domatia+fixer+scale(total_area_native)+woody+annual+scale(abs_lat_native)+uses_num_uses, data=df, family="binomial")
+binomial2 <- glm(introducedY~fixer*uses_num_uses+EFN*Domatia+fixer+scale(total_area_native)+woody+annual+scale(abs_lat_native)+uses_num_uses, data=df, family="binomial")
 summary(binomial2) 
 Anova(binomial2, type=3)
 plot(binomial2)
@@ -617,6 +656,11 @@ summary(lmer1)
 Anova(lmer1, type=3,)
 plot(lmer1)
 
+#removed the interaction when nonsig or the number of species showing trait combinations was
+#too small
+
+#Domatia interaction significant
+
 #Number of introduced ranges without random effect of genus
 lm2 <- lm(log(num_introduced)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses, data=legume_range_df_introducedY)
 summary(lm2)
@@ -627,29 +671,35 @@ plot(lm2)
 anova(lmer1, lm2) #Random effect improves model fit to data
 
 #Introduced area (if introduced at all)
-lmer2 <- lmer(log(total_area_introduced/1e+6)~EFN*Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi), data=legume_range_df_introducedY) 
+lmer2 <- lmer(log(total_area_introduced/1e+6)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi), data=legume_range_df_introducedY) 
 summary(lmer2)
 Anova(lmer2, type=3)
 plot(lmer2)
 
 #Native range size
-lmer3 <- lmer(log(total_area_native/1e+6)~EFN*Domatia+fixer+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=df)
+lmer3 <- lmer(log(total_area_native/1e+6)~EFN*uses_num_uses+fixer*uses_num_uses+EFN*Domatia+fixer+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=df)
 summary(lmer3)
 Anova(lmer3, type=3)
 plot(lmer3)
 
+#Plot the interaction between EFN, domatia and each mutualism with human uses
+
 #Mycorrhizae
 #Successful introduction?
-binomial3 <- glmer(introducedY~AM*EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(df, !is.na(myco)), family="binomial", control=glmerControl(optimizer="nloptwrap", optCtrl=list(maxfun=2e6)))
+binomial3 <- glmer(introducedY~AM*EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(df, !is.na(myco)), family="binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
 summary(binomial3) 
 Anova(binomial3, type=3)
 plot(binomial3)
+#No interactions with human uses
 
 #Number of introduced ranges
-lmer4 <- lmer(log(num_introduced)~AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
+lmer4 <- lmer(log(num_introduced)~EM*uses_num_uses+AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
 summary(lmer4)
 Anova(lmer4, type=3)
 plot(lmer4)
+#EM uses interaction seen
+#Check how many species have EM and their human uses hist
+
 
 #Introduced area (if introduced at all)
 lmer5 <- lmer(log(total_area_introduced/1e+6)~AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
@@ -674,7 +724,7 @@ df$EM.num <- ifelse(df$EM == "Y", 1, ifelse(df$EM == "N", 0, NA))
 
 df$num_mutualisms <- as.numeric(as.character(df$fixer))+as.numeric(as.character(df$EFN))+as.numeric(as.character(df$AM.num))+as.numeric(as.character(df$Domatia))+as.numeric(as.character(df$EM.num))
 
-summary.mnum2 <- ungroup(subset(df, !is.na(num_mutualisms)) %>% group_by(num_mutualisms, introducedY) %>% summarize(n=n()))
+summary.mnum2 <- ungroup(subset(df, !is.na(num_mutualisms)) %>% group_by(num_mutualisms, introducedY) %>% dplyr::summarize(n=n()))
 summary.mnum2.wide <- spread(summary.mnum2, key = introducedY, value=n)
 colnames(summary.mnum2.wide) <- c("num_mutualisms","Not_introduced",  "Introduced")
 summary.mnum2.wide$total <- summary.mnum2.wide$Not_introduced+summary.mnum2.wide$Introduced
@@ -683,27 +733,28 @@ prop.mnum <- paste0(summary.mnum2.wide$Introduced, "/", summary.mnum2.wide$total
 
 inset_p_mnum <- ggplot(data=subset(summary.mnum2.wide, !is.na(num_mutualisms)), aes(x=num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+xlab("Mutualisms (no.)")+ylab("Introduced (prop.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 2, y = 0.55, label = "**")+geom_text(aes(x=num_mutualisms, y=0.05, label=prop.mnum), color="white")
 
-summary.mnum <- subset(df, !is.na(num_mutualisms) & introducedY == 1) %>% group_by(num_mutualisms) %>% summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n))
+summary.mnum <- subset(df, !is.na(num_mutualisms) & introducedY == 1) %>% group_by(num_mutualisms) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n))
 summary.mnum$num_mutualisms <- as.factor(summary.mnum$num_mutualisms)
 
 p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+geom_text(aes(x=num_mutualisms, y= 3, label=n))+annotate("text", x=3, y=15.5, label="p = 0.06")
 p_num_mutualisms
 
-lmer7 <-  lmer(log(num_introduced)~num_mutualisms+annual+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
+lmer7 <-  lmer(log(num_introduced)~num_mutualisms+annual+scale(abs_lat_native)+woody+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
 summary(lmer7)
 Anova(lmer7, type=3)
 plot(lmer7)
 
-binomial4 <-  glmer(introducedY~num_mutualisms+annual+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms)), family="binomial")
+binomial4 <-  glmer(introducedY~num_mutualisms+annual+woody+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms)), family="binomial")
 summary(binomial4)
 Anova(binomial4, type=3)
 plot(binomial4)
+#Rerun with optimization
 
 fig3 <- plot_grid(inset_p_mnum, p_num_mutualisms, ncol=1, labels="AUTO")
 fig3
 save_plot("Figure3.pdf", fig3, base_height = 8, base_width=5)
 
-sum.nmum <- subset(df, !is.na(num_mutualisms)) %>% group_by(AM, EM, Domatia, EFN, fixer, num_mutualisms) %>% summarize(n=n())
+sum.nmum <- subset(df, !is.na(num_mutualisms)) %>% group_by(AM, EM, Domatia, EFN, fixer, num_mutualisms) %>% dplyr::summarize(n=n())
 kable(sum.nmum)
 ```
 
@@ -746,11 +797,11 @@ intercepted <- read.csv("alien_intercepted.csv")
 
 #Add exotic, intercepted, or indoor introduced
 area <- merge(area, exotic[, c("Phy", "Exotic_status")], by="Phy", all=TRUE)
-colnames(area)[[16]] <- "ExoticY"
+colnames(area)[[15]] <- "ExoticY"
 area <- merge(area, indoor[, c("Phy", "Exotic_status")], by="Phy", all=TRUE)
-colnames(area)[[17]] <- "IndoorY"
+colnames(area)[[16]] <- "IndoorY"
 area <- merge(area, intercepted[, c("Phy", "Exotic_status")], by="Phy", all=TRUE)
-colnames(area)[[18]] <- "InterceptedY"
+colnames(area)[[17]] <- "InterceptedY"
 
 #Introduced? 
 area$introducedY <- ifelse(area$total.area.introduced > 0, 1, 0)
@@ -758,7 +809,8 @@ area$IndoorY <- ifelse(!is.na(area$IndoorY) & area$IndoorY == "Indoor Introduced
 area$ExoticY <- ifelse(!is.na(area$ExoticY) & area$ExoticY == "Exotic" & area$introducedY == 1, 1, ifelse(is.na(area$ExoticY) & area$introducedY == 1, 0, NA))
 area$InterceptedY <- ifelse(!is.na(area$InterceptedY) & area$InterceptedY == "Intercepted" & area$introducedY == 1, 1, ifelse(is.na(area$InterceptedY) & area$introducedY == 1, 0, NA))
 
-#add a column for ant subfamily
+#add a column for ant subfamily - no run rquired
+#Code included for reproducibility
 genus <- word(area$Phy, 1, 1, sep="_") #creating the vector of genera for all species
 subfamily <- c()
 
@@ -798,15 +850,17 @@ write.csv(area, "ant_areas.csv")
 
 ```
 
-### Summarize ant dataset
+### dplyr::summarize ant dataset
 
 ```{r}
 
 area <- read.csv("ant_areas.csv")
+#area <- merge(area, ncontig, by = "Phy")
+#area <- area[, -10] 
 sum(complete.cases(subset(area, !is.na(introducedY))[, c("EFN", "Domatia", "Seed_Dispersal")])) #Total taxa with at least some trait data 
-kable(subset(area, !is.na(introducedY)) %>% group_by(EFN) %>% summarize(n=n()))
-kable(subset(area, !is.na(introducedY)) %>% group_by(Domatia) %>% summarize(n=n()))
-kable(subset(area, !is.na(introducedY)) %>% group_by(Seed_Dispersal) %>% summarize(n=n()))
+kable(subset(area, !is.na(introducedY)) %>% group_by(EFN) %>% dplyr::summarize(n=n()))
+kable(subset(area, !is.na(introducedY)) %>% group_by(Domatia) %>% dplyr::summarize(n=n()))
+kable(subset(area, !is.na(introducedY)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n()))
 ```
 
 ```{r}
@@ -815,9 +869,9 @@ y_limits <- c(-100000, 1.5e+7)
 er_width <- 0.1
 y_text <- -100000
 
-summary.ant.efn <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EFN) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.efn <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-summary.ant.efn1 <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EFN) %>% summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.efn1 <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
 p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7e+6, label = "*")
 
@@ -825,7 +879,7 @@ p_antEFN1 <- ggplot(data=summary.ant.efn1, aes(x=EFN, y=mean_introduced))+geom_p
 #Adjust labels
 
 
-summary.ant.efn2 <- ungroup(subset(area, !is.na(EFN)) %>% group_by(EFN, introducedY) %>% summarize(n=n()))
+summary.ant.efn2 <- ungroup(subset(area, !is.na(EFN)) %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.efn2.wide <- spread(summary.ant.efn2, key = introducedY, value=n)
 colnames(summary.ant.efn2.wide) <- c("EFN","Not_introduced",  "Introduced")
 summary.ant.efn2.wide$total <- summary.ant.efn2.wide$Not_introduced+summary.ant.efn2.wide$Introduced
@@ -834,13 +888,13 @@ prop.ant.efn <- paste0(summary.ant.efn2.wide$Introduced, "/", summary.ant.efn2.w
 
 inset_p_antEFN <- ggplot(data=summary.ant.efn2.wide, aes(x=EFN, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Visits EFNs")#+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=EFN, y=0.05, label=prop.ant.efn), color="white")
 
-summary.ant.dom <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.dom <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-summary.ant.dom1 <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.dom1 <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
 p_antdom <- ggplot(data=summary.ant.dom1, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-contiguous ranges")+xlab("Nests in domatia")#+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7e+6, label = "ns")
 
-summary.ant.dom2 <- ungroup(subset(area, !is.na(Domatia)) %>% group_by(Domatia, introducedY) %>% summarize(n=n()))
+summary.ant.dom2 <- ungroup(subset(area, !is.na(Domatia)) %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.dom2.wide <- spread(summary.ant.dom2, key = introducedY, value=n)
 colnames(summary.ant.dom2.wide) <- c("Domatia","Not_introduced",  "Introduced")
 summary.ant.dom2.wide$total <- summary.ant.dom2.wide$Not_introduced+summary.ant.dom2.wide$Introduced
@@ -849,13 +903,13 @@ prop.ant.dom <- paste0(summary.ant.dom2.wide$Introduced, "/", summary.ant.dom2.w
 
 inset_p_antdom <- ggplot(data=summary.ant.dom2.wide, aes(x=Domatia, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.ant.dom), color="white")
 
-summary.ant.elaiosome <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.elaiosome <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_introduced = mean(total.area.introduced, na.rm=TRUE), sd_introduced = sd(total.area.introduced, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-summary.ant.elaiosome1 <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.elaiosome1 <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_introduced = mean(Non_cont, na.rm=TRUE), sd_introduced = sd(Non_cont, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
 p_elaiosome <- ggplot(data=summary.ant.elaiosome1, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-contiguous ranges")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))#+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7e+6, label = "ns")
 
-summary.ant.seed2 <- ungroup(subset(area, !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, introducedY) %>% summarize(n=n()))
+summary.ant.seed2 <- ungroup(subset(area, !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.seed2.wide <- spread(summary.ant.seed2, key = introducedY, value=n)
 colnames(summary.ant.seed2.wide) <- c("Seed_Dispersal","Not_introduced",  "Introduced")
 summary.ant.seed2.wide$total <- summary.ant.seed2.wide$Not_introduced+summary.ant.seed2.wide$Introduced
@@ -876,15 +930,15 @@ save_plot("Figure4i.pdf", fig4, base_width=8, base_height =8)
 ```{r}
 y_limits = c(3200000, 1.25e+07)
 y_text = 3300000
-summary.ant.efn.native <- subset(area, !is.na(EFN) & !is.na(total.area.native)) %>% group_by(EFN) %>% summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.efn.native <- subset(area, !is.na(EFN) & !is.na(total.area.native)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
 
 p_antEFN_native <- ggplot(data=summary.ant.efn.native, aes(x=EFN, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "***")
 
-summary.ant.dom.native <- subset(area, !is.na(Domatia)& !is.na(total.area.native)) %>% group_by(Domatia) %>% summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.dom.native <- subset(area, !is.na(Domatia)& !is.na(total.area.native)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
 
 p_antdom_native <- ggplot(data=summary.ant.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "*")
 
-summary.ant.seed.native <- subset(area, !is.na(Seed_Dispersal)& !is.na(total.area.native)) %>% group_by(Seed_Dispersal) %>% summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.seed.native <- subset(area, !is.na(Seed_Dispersal)& !is.na(total.area.native)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
 
 p_antseed_native <- ggplot(data=summary.ant.seed.native, aes(x=Seed_Dispersal, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "***")
 
@@ -896,19 +950,19 @@ save_plot("Figure5.pdf", fig5, base_height = 4, base_width = 12)
 ### Multiple mutualisms
 
 ```{r}
-area$genus <- as.factor(word(area$Phy, 1, 1, sep="_")) #Extract ant genus
+#area$genus <- as.factor(word(area$Phy, 1, 1, sep="_")) #Extract ant genus
 area$num.mm <- as.numeric(as.character(area$Seed_Dispersal))+as.numeric(as.character(area$Domatia))+as.numeric(as.character(area$EFN))
 
-binomial10 <- glmer(introducedY ~ num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|genus), data=area, family ="binomial")
+binomial10 <- glmer(introducedY ~ num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=area, family ="binomial")
 summary(binomial10)
 Anova(binomial10, type=3)
 plot(binomial10)
 
-lmer11 <- lmer(log(total.area.introduced)~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|genus), data=subset(area, introducedY == 1))
+lmer11 <- lmer(log(total.area.introduced)~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=subset(area, introducedY == 1))
 summary(lmer11)
 Anova(lmer11, type=3)
 
-summary.ant.mm <- ungroup(subset(area, !is.na(introducedY)) %>% group_by(num.mm, introducedY) %>% summarize(n=n()))
+summary.ant.mm <- ungroup(subset(area, !is.na(introducedY)) %>% group_by(num.mm, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.mm.wide <- spread(summary.ant.mm, key=introducedY, value=n)
 colnames(summary.ant.mm.wide) <- c("Num_mutualisms","Not_introduced",  "Introduced")
 summary.ant.mm.wide$total <- summary.ant.mm.wide$Not_introduced+summary.ant.mm.wide$Introduced
@@ -918,7 +972,7 @@ prop.ant.mm <- prop.ant.mm[1:4]
 
 inset_p_antmm <- ggplot(data=subset(summary.ant.mm.wide, !is.na(Num_mutualisms)),aes(x=Num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+ylab("Introduced (prop.)")+xlab("Mutualisms (no.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=Num_mutualisms, y=0.05, label=prop.ant.mm), color="white")
 
-summary.ant.mnum <- subset(area, !is.na(num.mm) & introducedY == 1) %>% group_by(num.mm) %>% summarize(n=n(), mean_area_introduced = mean(total.area.introduced, na.rm=TRUE), sd_area_introduced = sd(total.area.introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n))
+summary.ant.mnum <- subset(area, !is.na(num.mm) & introducedY == 1) %>% group_by(num.mm) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total.area.introduced, na.rm=TRUE), sd_area_introduced = sd(total.area.introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n))
 summary.ant.mnum$num.mm <- as.factor(summary.ant.mnum$num.mm)
 
 p_num_mm <- ggplot(data=summary.ant.mnum, aes(x=num.mm, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num.mm, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+theme_cowplot()+ylab("Introduced range (sq. km)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+geom_text(aes(x=num.mm, y= -1000000, label=n))+scale_y_continuous(limits=c(-3000000, 3.5e+7))+annotate("text", x=2.5, y=2e+7, label="p = 0.06")
@@ -932,7 +986,7 @@ save_plot("Figure6.pdf", fig6, base_height = 8, base_width=5)
 ### Mixed models
 
 ```{r ant glmms, warning=FALSE, message=FALSE}
-
+area <- read.csv("ant_areas.csv")
 #Correlations between variables
 df_ant_cor <- data.frame(area$abs_lat_native, as.numeric(area$EFN), as.numeric(area$Domatia), as.numeric(area$Seed_Dispersal))
   #covariates
@@ -945,11 +999,19 @@ plotr <- corrplot(corr_ant$r, type = "upper", order = "hclust",
 plotp <- corrplot(corr_ant$P, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45) #p-values
 
+area$Tribe <- as.factor(area$Tribe)
+install.packages("stringr")
+library(stringr)
+
+area$genus <- word(area$Phy, start=1L, sep="_")
+#Do for legumes
+
 #Introduction success
-binomial6 <- glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=area, family="binomial")
+binomial6 <- lme4::glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|genus), data=area, family="binomial")
 summary(binomial6)
-Anova(binomial6, type=3)
+car::Anova(binomial6, type=3)
 plot(binomial6)
+#Update optimizer
 
 #Total introduced area
 lmer9 <- lmer(log(total.area.introduced)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=subset(area, introducedY == 1))
@@ -958,7 +1020,7 @@ Anova(lmer9, type=3)
 plot(lmer9)
 
 #Total non-contiguous ranges
-lmer9i <- lmer(log(Non_cont)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=subset(area, introducedY == 1))
+lmer9i <- lmer(log(n_introduced_ranges)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|Tribe), data=subset(area, introducedY == 1))
 summary(lmer9i)
 Anova(lmer9i, type=3)
 plot(lmer9i)
@@ -976,7 +1038,7 @@ plot(lmer10)
 
 # Exotic
 area$ExoticY <- as.factor(area$ExoticY)
-exotic.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, ExoticY) %>% summarize(n=n()))
+exotic.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, ExoticY) %>% dplyr::summarize(n=n()))
 exotic.efn.wide <- spread(exotic.efn, key = ExoticY, value=n)
 colnames(exotic.efn.wide) <- c("EFN","Not_exotic",  "Exotic")
 exotic.efn.wide$EFN <- c("No", "Yes")
@@ -986,7 +1048,7 @@ prop.exotic.efn <- paste0(exotic.efn.wide$Exotic, "/", exotic.efn.wide$total)
 
 p_exoticefn <- ggplot(data=exotic.efn.wide, aes(x=EFN, y=prop.exotic))+geom_bar(stat="identity")+theme_cowplot()+ylab("Naturalized (prop.)")+xlab("Visits EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.85, label = "p = 0.08")+geom_text(aes(x=EFN, y=0.05, label=prop.exotic.efn), color="white")
 
-exotic.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, ExoticY) %>% summarize(n=n()))
+exotic.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, ExoticY) %>% dplyr::summarize(n=n()))
 exotic.dom.wide <- spread(exotic.dom, key = ExoticY, value=n)
 colnames(exotic.dom.wide) <- c("Domatia","Not_exotic",  "Exotic")
 exotic.dom.wide$Domatia <- c("No", "Yes")
@@ -996,7 +1058,7 @@ prop.exotic.dom <- paste0(exotic.dom.wide$Exotic, "/", exotic.dom.wide$total)
 
 p_exoticdom <- ggplot(data=exotic.dom.wide, aes(x=Domatia, y=prop.exotic))+geom_bar(stat="identity")+theme_cowplot()+ylab("Naturalized (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.85, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.exotic.dom), color="white")
 
-exotic.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, ExoticY) %>% summarize(n=n()))
+exotic.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, ExoticY) %>% dplyr::summarize(n=n()))
 exotic.seed.wide <- spread(exotic.seed, key = ExoticY, value=n)
 colnames(exotic.seed.wide) <- c("Seed_Dispersal","Not_exotic",  "Exotic")
 exotic.seed.wide$Seed_Dispersal <- c("No", "Yes")
@@ -1016,7 +1078,7 @@ plot(binomial7)
 #Indoors?
 area$IndoorY <- as.factor(area$IndoorY)
 
-indoor.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, IndoorY) %>% summarize(n=n()))
+indoor.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, IndoorY) %>% dplyr::summarize(n=n()))
 indoor.efn.wide <- spread(indoor.efn, key = IndoorY, value=n)
 colnames(indoor.efn.wide) <- c("EFN","Not_indoor",  "indoor")
 indoor.efn.wide$EFN <- c("No", "Yes")
@@ -1026,7 +1088,7 @@ prop.indoor.efn <- paste0(indoor.efn.wide$indoor, "/", indoor.efn.wide$total)
 
 p_indoorefn <- ggplot(data=indoor.efn.wide, aes(x=EFN, y=prop.indoor))+geom_bar(stat="identity")+theme_cowplot()+ylab("Indoors (prop.)")+xlab("Visits EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.85, label = "*")+geom_text(aes(x=EFN, y=0.05, label=prop.indoor.efn), color="white")
 
-indoor.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, IndoorY) %>% summarize(n=n()))
+indoor.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, IndoorY) %>% dplyr::summarize(n=n()))
 indoor.dom.wide <- spread(indoor.dom, key = IndoorY, value=n)
 colnames(indoor.dom.wide) <- c("Domatia","Not_indoor",  "indoor")
 indoor.dom.wide$Domatia <- c("No", "Yes")
@@ -1036,7 +1098,7 @@ prop.indoor.dom <- paste0(indoor.dom.wide$indoor, "/", indoor.dom.wide$total)
 
 p_indoordom <- ggplot(data=indoor.dom.wide, aes(x=Domatia, y=prop.indoor))+geom_bar(stat="identity")+theme_cowplot()+ylab("Indoors (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.85, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.indoor.dom), color="white")
 
-indoor.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, IndoorY) %>% summarize(n=n()))
+indoor.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, IndoorY) %>% dplyr::summarize(n=n()))
 indoor.seed.wide <- spread(indoor.seed, key = IndoorY, value=n)
 colnames(indoor.seed.wide) <- c("Seed_Dispersal","Not_indoor",  "indoor")
 indoor.seed.wide$Seed_Dispersal <- c("No", "Yes")
@@ -1056,7 +1118,7 @@ plot(binomial8)
 #Intercepted
 area$InterceptedY <- as.factor(area$InterceptedY)
 
-intercepted.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, InterceptedY) %>% summarize(n=n()))
+intercepted.efn <- ungroup(subset(area, introducedY ==1 & !is.na(EFN)) %>% group_by(EFN, InterceptedY) %>% dplyr::summarize(n=n()))
 intercepted.efn.wide <- spread(intercepted.efn, key = InterceptedY, value=n)
 colnames(intercepted.efn.wide) <- c("EFN","Not_intercepted",  "intercepted")
 intercepted.efn.wide$EFN <- c("No", "Yes")
@@ -1066,7 +1128,7 @@ prop.intercepted.efn <- paste0(intercepted.efn.wide$intercepted, "/", intercepte
 
 p_interceptedefn <- ggplot(data=intercepted.efn.wide, aes(x=EFN, y=prop.intercepted))+geom_bar(stat="identity")+theme_cowplot()+ylab("Intercepted (prop.)")+xlab("Visits EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.85, label = "ns")+geom_text(aes(x=EFN, y=0.05, label=prop.intercepted.efn), color="white")
 
-intercepted.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, InterceptedY) %>% summarize(n=n()))
+intercepted.dom <- ungroup(subset(area, introducedY ==1 & !is.na(Domatia)) %>% group_by(Domatia, InterceptedY) %>% dplyr::summarize(n=n()))
 intercepted.dom.wide <- spread(intercepted.dom, key = InterceptedY, value=n)
 colnames(intercepted.dom.wide) <- c("Domatia","Not_intercepted",  "intercepted")
 intercepted.dom.wide$Not_intercepted <- ifelse(is.na(intercepted.dom.wide$Not_intercepted), 0, intercepted.dom.wide$Not_intercepted)
@@ -1077,7 +1139,7 @@ prop.intercepted.dom <- paste0(intercepted.dom.wide$intercepted, "/", intercepte
 
 p_intercepteddom <- ggplot(data=intercepted.dom.wide, aes(x=Domatia, y=prop.intercepted))+geom_bar(stat="identity")+theme_cowplot()+ylab("Intercepted (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.45, y = 0.85, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.intercepted.dom), color="white")
 
-intercepted.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, InterceptedY) %>% summarize(n=n()))
+intercepted.seed <- ungroup(subset(area, introducedY ==1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, InterceptedY) %>% dplyr::summarize(n=n()))
 intercepted.seed.wide <- spread(intercepted.seed, key = InterceptedY, value=n)
 colnames(intercepted.seed.wide) <- c("Seed_Dispersal","Not_intercepted",  "intercepted")
 intercepted.seed.wide$Seed_Dispersal <- c("No", "Yes")
@@ -1109,7 +1171,7 @@ phy_int <- intersect(ant_tree$tip.label, area$Phy)
 phy_diff <- setdiff(ant_tree$tip.label, area$Phy)
 pruned_ant_tree <- drop.tip(ant_tree, as.character(phy_diff)) #pruning tree to contain only tips in the dataset
 
-area_phy <- area[area$Phy %in% phy_int, c("Phy", "abs_lat_native", "total.area.introduced", "total.area.native", "Non_cont",  "EFN", "Domatia", "Seed_Dispersal")] #dataset for pgls
+area_phy <- area[area$Phy %in% phy_int, c("Phy", "abs_lat_native", "total.area.introduced", "total.area.native", "n_introduced_ranges",  "EFN", "Domatia", "Seed_Dispersal")] #dataset for pgls
 area_phy <- area_phy[complete.cases(area_phy), ]
 #write.csv(efn_area_phy, "Ant_list_EFN.csv")
 #efn_area_phy <- efn_area_phy[match(pruned_ant_tree$tip.label, efn_area_phy$Phy),]
@@ -1121,7 +1183,7 @@ area_phy <- area_phy[complete.cases(area_phy), ]
 #summary(a1) 
 
 #removing interactions
-a11 <- gls(log(total.area.native) ~ EFN + Domatia + Seed_Dispersal + abs_lat_native, 
+a11 <- gls(((total.area.native)^(1/4)) ~ EFN + Domatia + Seed_Dispersal + abs_lat_native, 
                 correlation = corPagel(1, phy = pruned_ant_tree, form = ~ Phy), 
                 method = "ML", data = area_phy) 
 summary(a11)
@@ -1142,7 +1204,7 @@ qqnorm(a2$residuals)
 qqline(a2$residuals)
 
 #Non-contiguous range
-a3 <- gls(log(Non_cont+1) ~  EFN + Domatia + Seed_Dispersal +  total.area.native + abs_lat_native,  correlation = corPagel(1, phy = pruned_ant_tree, form = ~Phy), method = "ML", data = area_phy)  
+a3 <- gls(log(n_introduced_ranges+1) ~  EFN + Domatia + Seed_Dispersal +  total.area.native + abs_lat_native,  correlation = corPagel(1, phy = pruned_ant_tree, form = ~Phy), method = "ML", data = area_phy)  
 summary(a3)
 
 ## Diagnostic plots
