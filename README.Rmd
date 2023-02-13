@@ -495,7 +495,10 @@ save_plot("Figure2.pdf", fig2, base_height = 4, base_width = 12)
 #### Preparing dataset for pgls analysis
 
 ```{r PGLS, warning=FALSE, message=FALSE}
+
+
 df$Phy2 <- paste0(as.character(word(legume_range_df$Phy, 1, 1)), "_", as.character(word(legume_range_df$Phy, 2, 2)))
+
 zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
 phyint <- intersect(zanne$tip.label, df$Phy2)  
 phydiff <- setdiff(zanne$tip.label, df$Phy2)
@@ -506,6 +509,7 @@ colnames(range_pgls)
 which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
 range_pgls <-range_pgls[,-c(23:30, 32, 34)] #Remove some unneeded columns
 range_pgls <- range_pgls[complete.cases(range_pgls), ] #removing NA elements
+
 ```
 
 #### PGLS models for EFN, domatia, and rhizobia
@@ -563,10 +567,86 @@ range_myco_pgls <-range_myco_pgls[,-c(32)] #Remove some unneeded columns
 range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ] #removing NA elements
 
 #PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-pgls4 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
+pgls4 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
 summary(pgls4)
+
+#PGLS of total introduced area
+pgls5 <- gls(log(total_area_introduced/1e+6 + 1) ~  AM +EM+
+            total_area_native + abs_lat_native + uses_num_uses+ annual + woody, 
+            correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), 
+            method = "ML", data = range_myco_pgls) 
+summary(pgls5)
+
+pgls6 <- gls((total_area_native)^(1/4) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
+summary(pgls6)
+
+
 ```
 
+#### Pagel correlations between traits
+
+```{r Pagel, warning=FALSE, message=FALSE}
+
+#Pagel correlation between traits
+range_pagel <- df[df$Phy2 %in% phyint, ]
+range_pagel <-range_pagel[,-c(23:28, 32, 34)] #Remove some unneeded columns
+
+range_pagel <- range_pagel[!duplicated(range_pagel$Phy2), ] #Removing duplicated data
+range_pagel <- range_pagel[complete.cases(range_pagel), ] 
+
+names <- pruned.tree.pgls$tip.label 
+names <- names[names %in% range_pagel$Phy2]
+
+
+traits <- data.frame(range_pagel$Phy2, range_pagel$AM, range_pagel$EM, range_pagel$EFN, range_pagel$Domatia, range_pagel$fixer)
+colnames(traits) <- c("Phy", "AM", "EM", "EFN", "Domatia", "Fixer")
+traits <- arrange(traits, names)
+
+#[match(as.character(pruned.tree.pgls$tip.label), traits$Phy),]
+
+rownames(traits) <- traits[,1]
+traits[,1] <- NULL
+head(traits)
+
+AM<-setNames(traits$AM,rownames(traits))
+EM<-setNames(traits$EM,rownames(traits))
+EFN<-setNames(traits$EFN,rownames(traits))
+Domatia<-setNames(traits$Domatia,rownames(traits))
+fixer<-setNames(traits$Fixer,rownames(traits))
+
+#Subsetting phylogeny
+phyint2 <- intersect(pruned.tree.pgls$tip.label, range_pagel$Phy2)  
+phydiff2 <- setdiff(pruned.tree.pgls$tip.label, range_pagel$Phy2)
+pruned.pagel <- drop.tip(pruned.tree.pgls, phydiff2) #dropping tips not in the dataset
+
+fit.amem <- fitPagel(pruned.pagel, AM, EM)
+amem <- plot(fit.amem,lwd.by.rate=TRUE)
+
+fit.amefn <- fitPagel(pruned.pagel, AM, EFN) #nonsig
+
+fit.amdom <- fitPagel(pruned.pagel, AM, Domatia) #signif.
+amdom <- plot(fit.amdom,lwd.by.rate=TRUE)
+
+fit.amfix <- fitPagel(pruned.pagel, AM, fixer) #pval 0.009
+amfix <- plot(fit.amfix,lwd.by.rate=TRUE)
+
+fit.emefn <- fitPagel(pruned.pagel, EM, EFN) #nonsig
+
+fit.emdom <- fitPagel(pruned.pagel, EM, Domatia)
+emdom <- plot(fit.emdom,lwd.by.rate=TRUE)
+
+fit.emfix <- fitPagel(pruned.pagel, EM, fixer) #pval 0.0004
+emfix <- plot(fit.emfix, lwd.by.rate=TRUE)
+
+fit.efndom <- fitPagel(pruned.pagel, EFN, Domatia)
+efndom <- plot(fit.efndom, lwd.by.rate=TRUE)
+
+fit.efnfix <- fitPagel(pruned.pagel, EFN, fixer) #nonsig
+
+fit.domfix <- fitPagel(pruned.pagel, Domatia, fixer) #marginally sig
+domfix <- plot(fit.domfix, lwd.by.rate=TRUE)
+
+```
 #### Mixed models
 Another possible approach is to use mixed models with legume genus as a random effect to account for the non-independence of species in a genus. The response variables (number of introduced ranges and total introduced area) are very non-normal so we fit two models: a binomial GLMM modelling whether or not a legume species is introduced, and linear mixed models of the number of introduced ranges or total introduced area for introduced species only. 
 
@@ -588,7 +668,7 @@ binomial1 <- glmer(introducedY~fixer*uses_num_uses + fixer + EFN+Domatia+scale(t
 summary(binomial1) 
 Anova(binomial1, type=3)
 plot(binomial1)
-#EFN, Domatia interaction with human uses was non-significant
+
 
 #Fit binomial model without random effect
 binomial2 <- glm(introducedY~fixer*uses_num_uses+EFN*Domatia+fixer+scale(total_area_native)+woody+annual+scale(abs_lat_native)+uses_num_uses, data=df, family="binomial")
@@ -687,12 +767,12 @@ summary.mnum$num_mutualisms <- as.factor(summary.mnum$num_mutualisms)
 p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+geom_text(aes(x=num_mutualisms, y= 3, label=n))+annotate("text", x=3, y=15.5, label="p = 0.06")
 p_num_mutualisms
 
-lmer7 <-  lmer(log(num_introduced)~num_mutualisms+annual+scale(abs_lat_native)+woody+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
+lmer7 <-  lmer(log(num_introduced)~num_mutualisms+annual+scale(abs_lat_native)+woody+uses_num_uses+scale(total_area_native)+(1|tribe_ncbi), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
 summary(lmer7)
 Anova(lmer7, type=3)
 plot(lmer7)
 
-binomial4 <-  glmer(introducedY~num_mutualisms+annual+woody+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|genus), data=subset(df, !is.na(num_mutualisms)), family="binomial")
+binomial4 <-  glmer(introducedY~num_mutualisms+annual+woody+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|tribe_ncbi), data=subset(df, !is.na(num_mutualisms)), family="binomial")
 summary(binomial4)
 Anova(binomial4, type=3)
 plot(binomial4)
@@ -758,20 +838,22 @@ area$ExoticY <- ifelse(!is.na(area$ExoticY) & area$ExoticY == "Exotic" & area$in
 area$InterceptedY <- ifelse(!is.na(area$InterceptedY) & area$InterceptedY == "Intercepted" & area$introducedY == 1, 1, ifelse(is.na(area$InterceptedY) & area$introducedY == 1, 0, NA))
 ```
 
-We will use the ant subfamily as a random effect in models, and so need to download it for each ant genus in the dataset.
+We will use the ant tribe as a random effect in models, and so need to download it for each ant genus in the dataset.
 
-```{r Get ant subfamily, eval=FALSE, warning=FALSE, message=FALSE}
+```{r Get ant tribe, eval=FALSE, warning=FALSE, message=FALSE}
 #Not run
 #Code included for reproducibility
 ant <- data.frame(genus = unique(word(area$Phy, 1, 1, sep="_"))) #creating the vector of unique genera
-ant$subfamily <- NA #create an empty vector ant subfamily 
+ant$tribe <- NA #create an empty vector ant tribe 
 #Loop through all ant genera
 for (i in 1:length(ant$genus)){
-  ant[i, "subfamily"] <- tax_name(sci= genus[i], get = 'subfamily', db = 'itis')$subfamily
+  ant[i, "tribe"] <- tax_name(sci= ant$genus[i], get = 'tribe', db = 'itis')$tribe
 }
-write.csv(ant, "subfamily.csv") 
+write.csv(ant, "ant_tribe.csv") 
+#some tribes added manually from AntWiki because data was not available
 
-#Merge ant subfamily with ant range dataset
+ant <- read.csv("ant_tribe.csv")
+#Merge ant tribe with ant range dataset
 area$genus <- word(area$Phy, 1, 1, sep="_")
 area <- merge(area, ant, by="genus", all.x=TRUE)
 write.csv(area, "ant_areas.csv")
@@ -781,7 +863,7 @@ write.csv(area, "ant_areas.csv")
 
 ```{r}
 area <- read.csv("ant_areas.csv")
-area$subfamily <- as.factor(area$subfamily)
+area$tribe <- as.factor(area$tribe)
 
 sum(complete.cases(subset(area, !is.na(introducedY))[, c("EFN", "Domatia", "Seed_Dispersal")])) #Total taxa with at least some trait data 
 kable(subset(area, !is.na(introducedY)) %>% group_by(EFN) %>% dplyr::summarize(n=n()))
@@ -877,12 +959,12 @@ save_plot("Figure5.pdf", fig5, base_height = 4, base_width = 12)
 ```{r}
 area$num.mm <- as.numeric(as.character(area$Seed_Dispersal))+as.numeric(as.character(area$Domatia))+as.numeric(as.character(area$EFN))
 
-binomial10 <- glmer(introducedY ~ num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=area, family ="binomial")
+binomial10 <- glmer(introducedY ~ num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=area, family ="binomial")
 summary(binomial10)
 Anova(binomial10, type=3)
 plot(binomial10)
 
-lmer11 <- lmer(log(n_introduced_ranges)~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1))
+lmer11 <- lmer(log(n_introduced_ranges)~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
 summary(lmer11)
 Anova(lmer11, type=3)
 
@@ -927,26 +1009,26 @@ plotp <- corrplot(corr_ant$P, type = "upper", order = "hclust",
          tl.col = "black", tl.srt = 45) #p-values
 
 #Introduction success
-binomial6 <- lme4::glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=area, family="binomial")
+binomial6 <- lme4::glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=area, family="binomial")
 summary(binomial6)
 car::Anova(binomial6, type=3)
 plot(binomial6)
 #Update optimizer
 
 #Total introduced area
-lmer9 <- lmer(log(total.area.introduced)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1))
+lmer9 <- lmer(log(total.area.introduced)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
 summary(lmer9)
 Anova(lmer9, type=3)
 plot(lmer9)
 
 #Total non-contiguous ranges
-lmer9i <- lmer(log(n_introduced_ranges)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1))
+lmer9i <- lmer(log(n_introduced_ranges)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
 summary(lmer9i)
 Anova(lmer9i, type=3)
 plot(lmer9i)
 
 #Native range area
-lmer10 <- lmer(log(total.area.native)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+(1|subfamily), data=area)
+lmer10 <- lmer(log(total.area.native)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+(1|tribe), data=area)
 summary(lmer10)
 Anova(lmer10, type=3)
 plot(lmer10)
@@ -990,7 +1072,7 @@ p_exoticseed <- ggplot(data=exotic.seed.wide, aes(x=Seed_Dispersal, y=prop.exoti
 
 p_exotic <- plot_grid(p_exoticefn, p_exoticdom, p_exoticseed, nrow=1, labels=c("G", "H", "I"))
 
-binomial7 <- glmer(ExoticY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1), family="binomial")
+binomial7 <- glmer(ExoticY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial7)
 Anova(binomial7, type=3)
 plot(binomial7)
@@ -1030,7 +1112,7 @@ p_indoorseed <- ggplot(data=indoor.seed.wide, aes(x=Seed_Dispersal, y=prop.indoo
 
 p_indoor <- plot_grid(p_indoorefn, p_indoordom, p_indoorseed, nrow=1, labels=c("D","E", "F"))
 
-binomial8 <- glmer(IndoorY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1), family="binomial")
+binomial8 <- glmer(IndoorY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial8)
 Anova(binomial8, type=3)
 plot(binomial8)
@@ -1071,7 +1153,7 @@ p_interceptedseed <- ggplot(data=intercepted.seed.wide, aes(x=Seed_Dispersal, y=
 
 p_intercepted <- plot_grid(p_interceptedefn, p_intercepteddom, p_interceptedseed, nrow=1, labels="AUTO")
 
-binomial9 <- glmer(InterceptedY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|subfamily), data=subset(area, introducedY == 1), family="binomial")
+binomial9 <- glmer(InterceptedY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial9)
 Anova(binomial9, type=3)
 plot(binomial9)
@@ -1135,4 +1217,43 @@ qqnorm(a3$residuals)
 qqline(a3$residuals)
 
 ```
+#### Pagel correlations between traits
 
+```{r Pagel, warning=FALSE, message=FALSE}
+
+area_pagel <- area[area$Phy %in% area$Phy, c("Phy", "EFN", "Domatia", "Seed_Dispersal")]
+area_pagel <- area_pagel[complete.cases(area_pagel), ]
+
+ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
+phy_int1 <- intersect(ant_tree$tip.label, area_pagel$Phy)
+phy_diff1 <- setdiff(ant_tree$tip.label, area_pagel$Phy)
+ant_tree_pagel <- drop.tip(ant_tree, as.character(phy_diff1))
+
+area_pagel <- area_pagel[area_pagel$Phy %in% ant_tree_pagel$tip.label,]
+
+ant_traits <- data.frame(area_pagel$Phy, area_pagel$EFN, area_pagel$Domatia, area_pagel$Seed_Dispersal)
+colnames(ant_traits) <- c("Phy", "EFN", "Domatia", "Seed_dispersal")
+ant_traits <- arrange(ant_traits, ant_tree_pagel$tip.label)
+
+
+rownames(ant_traits) <- ant_traits[,1]
+ant_traits[,1] <- NULL
+head(ant_traits)
+
+EFN <-setNames(ant_traits$EFN,rownames(ant_traits))
+Domatia <-setNames(ant_traits$Domatia,rownames(ant_traits))
+sd <-setNames(ant_traits$Seed_dispersal,rownames(ant_traits))
+
+#EFN and Domatia
+fit.aefndom <- fitPagel(ant_tree_pagel, EFN, Domatia) #stat sig
+aefndom <- plot(fit.aefndom,lwd.by.rate=TRUE)
+
+
+fit.adomsd <- fitPagel(ant_tree_pagel, Domatia, sd) #not sig
+
+
+fit.asdefn <- fitPagel(ant_tree_pagel, sd, EFN) #pval 0.04
+asdefn <- plot(fit.asdefn,lwd.by.rate=TRUE)
+
+
+```
