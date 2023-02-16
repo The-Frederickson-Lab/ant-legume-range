@@ -488,6 +488,7 @@ p_EM_native <- ggplot(data=subset(summary.EM.native, !is.na(EM)), aes(x=EM, y=me
 fig2 <- plot_grid(p_EFN_dom_native, p_fix_native, p_AM_native, p_EM_native, nrow=1, labels="AUTO", rel_widths = c(1.8, 1, 1, 1))
 fig2
 save_plot("Figure2.pdf", fig2, base_height = 4, base_width = 12)
+save_plot("Figure2.png", fig2, base_height = 4, base_width = 12)
 ```
 
 ### Statistical models
@@ -781,6 +782,7 @@ plot(binomial4)
 fig3 <- plot_grid(inset_p_mnum, p_num_mutualisms, ncol=1, labels="AUTO")
 fig3
 save_plot("Figure3.pdf", fig3, base_height = 8, base_width=5)
+save_plot("Figure3.png", fig3, base_height = 8, base_width=5)
 
 sum.nmum <- subset(df, !is.na(num_mutualisms)) %>% group_by(AM, EM, Domatia, EFN, fixer, num_mutualisms) %>% dplyr::summarize(n=n())
 kable(sum.nmum)
@@ -883,7 +885,7 @@ summary.ant.efn1 <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EF
 
 p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 0.5, y = 15, label = "*")
 
-p_antEFN1 <- ggplot(data=summary.ant.efn1, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Number of non-contiguous introduced ranges")+xlab("Visits EFNs")+scale_x_discrete(labels=c("No", "Yes"))+geom_text(aes(x=EFN, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+annotate("text", x = 0.5, y = 15, label = "**")
+p_antEFN1 <- ggplot(data=summary.ant.efn1, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-cont. introduced ranges")+xlab("Visits EFNs")+scale_x_discrete(labels=c("No", "Yes"))+geom_text(aes(x=EFN, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+annotate("text", x = 0.5, y = 15, label = "**")
 #Adjust labels
 
 summary.ant.efn2 <- ungroup(subset(area, !is.na(EFN)) %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
@@ -899,7 +901,7 @@ summary.ant.dom <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by
 
 summary.ant.dom1 <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-p_antdom <- ggplot(data=summary.ant.dom1, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-contiguous ranges")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 20, label = "ns")
+p_antdom <- ggplot(data=summary.ant.dom1, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-cont.introduced ranges")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 20, label = "ns")
 
 summary.ant.dom2 <- ungroup(subset(area, !is.na(Domatia)) %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.dom2.wide <- spread(summary.ant.dom2, key = introducedY, value=n)
@@ -914,7 +916,7 @@ summary.ant.elaiosome <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal))
 
 summary.ant.elaiosome1 <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-p_elaiosome <- ggplot(data=summary.ant.elaiosome1, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-contiguous ranges")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 11, label = "ns")
+p_elaiosome <- ggplot(data=summary.ant.elaiosome1, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("No. of non-cont.introduced ranges")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 11, label = "ns")
 
 summary.ant.seed2 <- ungroup(subset(area, !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.seed2.wide <- spread(summary.ant.seed2, key = introducedY, value=n)
@@ -930,6 +932,7 @@ fig4bottom <- plot_grid(p_antEFN1, p_elaiosome, p_antdom, nrow=1, labels=c("D", 
 fig4 <- plot_grid(fig4top, fig4bottom, nrow=2)
 fig4
 save_plot("Figure4i.pdf", fig4, base_width=8, base_height =8)
+save_plot("Figure4i.png", fig4, base_width=10, base_height =8)
 ```
 
 #### Native range size
@@ -952,6 +955,7 @@ p_antseed_native <- ggplot(data=summary.ant.seed.native, aes(x=Seed_Dispersal, y
 fig5 <- plot_grid(p_antEFN_native, p_antseed_native, p_antdom_native, nrow=1, labels="AUTO")
 fig5
 save_plot("Figure5.pdf", fig5, base_height = 4, base_width = 12)
+save_plot("Figure5.png", fig5, base_height = 4, base_width = 12)
 ```
 
 ### Multiple mutualisms
@@ -990,6 +994,7 @@ p_num_mm <- ggplot(data=summary.ant.mnum1, aes(x=num.mm, y=mean_area_introduced)
 fig6 <- plot_grid(inset_p_antmm, p_num_mm, ncol=1, labels="AUTO")
 fig6
 save_plot("Figure6.pdf", fig6, base_height = 8, base_width=5)
+save_plot("Figure6.png", fig6, base_height = 8, base_width=5)
 
 ```
 
@@ -1161,6 +1166,7 @@ plot(binomial9)
 fig7 <- plot_grid(p_intercepted, p_indoor, p_exotic, nrow=3)
 fig7
 save_plot("Figure7.pdf", fig7, base_height=8, base_width=8)
+save_plot("Figure7.png", fig7, base_height=8, base_width=8)
 ```
 
 ### PGLS Models
