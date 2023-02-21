@@ -586,7 +586,7 @@ summary(pgls6)
 
 #### Pagel correlations between traits
 
-```{r Pagel, warning=FALSE, message=FALSE}
+```{r plant Pagel, warning=FALSE, message=FALSE}
 
 #Pagel correlation between traits
 range_pagel <- df[df$Phy2 %in% phyint, ]
@@ -597,7 +597,6 @@ range_pagel <- range_pagel[complete.cases(range_pagel), ]
 
 names <- pruned.tree.pgls$tip.label 
 names <- names[names %in% range_pagel$Phy2]
-
 
 traits <- data.frame(range_pagel$Phy2, range_pagel$AM, range_pagel$EM, range_pagel$EFN, range_pagel$Domatia, range_pagel$fixer)
 colnames(traits) <- c("Phy", "AM", "EM", "EFN", "Domatia", "Fixer")
@@ -1225,7 +1224,7 @@ qqline(a3$residuals)
 ```
 #### Pagel correlations between traits
 
-```{r Pagel, warning=FALSE, message=FALSE}
+```{r ant Pagel, warning=FALSE, message=FALSE}
 
 area_pagel <- area[area$Phy %in% area$Phy, c("Phy", "EFN", "Domatia", "Seed_Dispersal")]
 area_pagel <- area_pagel[complete.cases(area_pagel), ]
