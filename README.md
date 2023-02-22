@@ -2,7 +2,7 @@ Generalized mutualism promotes range expansion in both ant and plant
 partners
 ================
 Pooja Nathan and Megan Frederickson
-2023-02-20
+2023-02-21
 
 # How does mutualism affect ant and plant range sizes?
 
@@ -50,7 +50,6 @@ here, but they are included for reproducibility.
 range <- read.csv("inv_dat_by_species_simonsen2017.csv") #Read in legume range data
 names(range)[names(range) == "Species"] <- "Phy"
 range$Phy <- as.character(gsub("_", " ", range$Phy))
-
 
 #EFN data
 EFN <- read.csv("EFNs_Weberatal_analysis_onlypresence.csv") #Read in EFN data
@@ -272,12 +271,10 @@ legume_range_df$woody <- as.numeric(legume_range_df$woody)
 legume_range_df$myco <- ifelse(legume_range_df$AM == "Y" | legume_range_df$EM == "Y", 1, ifelse(legume_range_df$AM == "N" & legume_range_df$EM == "N", 0, NA))
 legume_range_df$myco <- as.factor(legume_range_df$myco)
 
+#Assignt to a shorter dataframe name
 df <- legume_range_df
-#annual and woody are highly correlated
-#combining them into a single variable called Natural History
-#df$nathis <- df$annual + df$woody
-#df$nathis <- as.factor(df$nathis)
 
+#Summarize the number of legume taxa with and without EFNs
 summary.efn <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.efn)
 ```
@@ -340,16 +337,8 @@ kable(summary.myco2)
 
 ### Make figures
 
-#### Number of introduced ranges
-
-Our measure of ecological success for legumes is the number of new
-ranges they have been successfully introduced to. We subsetted to
-include only legumes with at least one introduced range. Each “inset”
-shows the proportion of introduced species in with each trait.
-
-##### Dots and whiskers
-
 ``` r
+#Set sizes and widths for all figures
 pt_size <- 3
 y_limits <- c(-0.5, 15)
 er_width <- 0.1
@@ -360,15 +349,8 @@ df$introducedY <- ifelse(df$num_introduced > 0, 1, 0) #Create binary variable fo
 
 #EFN figure
 summary.efn <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
-kable(summary.efn)
-```
+#kable(summary.efn)
 
-| EFN |   n | mean_num_introduced | sd_num_introduced | se_num_introduced |
-|:----|----:|--------------------:|------------------:|------------------:|
-| 0   | 716 |            7.051676 |          10.33137 |         0.3861014 |
-| 1   | 135 |           10.903704 |          13.55468 |         1.1666015 |
-
-``` r
 p_EFN <- ggplot(data=summary.efn, aes(x=EFN, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "***")
 
 summary.efn2 <- ungroup(df %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
@@ -382,15 +364,8 @@ inset_p_EFN <- ggplot(data=summary.efn2.wide, aes(x=EFN, y=prop.introduced))+geo
 
 #Domatia figure
 summary.dom <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
-kable(summary.dom)
-```
+#kable(summary.dom)
 
-| Domatia |   n | mean_num_introduced | sd_num_introduced | se_num_introduced |
-|:--------|----:|--------------------:|------------------:|------------------:|
-| 0       | 844 |            7.710901 |         11.019742 |         0.3793152 |
-| 1       |   7 |            1.857143 |          1.573592 |         0.5947617 |
-
-``` r
 p_dom <- ggplot(data=summary.dom, aes(x=Domatia, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "*")
 
 summary.dom2 <- ungroup(df %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
@@ -404,37 +379,24 @@ inset_p_dom <- ggplot(data=summary.dom2.wide, aes(x=Domatia, y=prop.introduced))
 
 #Nodules figure
 summary.fix <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
-kable(summary.fix)
-```
+#kable(summary.fix)
 
-| fixer |   n | mean_num_introduced | sd_num_introduced | se_num_introduced |
-|:------|----:|--------------------:|------------------:|------------------:|
-| 0     | 103 |            9.543689 |          10.63455 |         1.0478534 |
-| 1     | 748 |            7.403743 |          11.01733 |         0.4028336 |
-
-``` r
 p_fix <- ggplot(data=summary.fix, aes(x=fixer, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "ns")
 
 summary.fix2 <- ungroup(df %>% group_by(fixer, introducedY) %>% dplyr::summarize(n=n()))
+#kable(summary.fix2)
 summary.fix2.wide <- spread(summary.fix2, key = introducedY, value=n)
-colnames(summary.fix2.wide) <- c("fixer","Not_introduced",  "Introduced")
+colnames(summary.fix2.wide) <- c("fixer", "Not_introduced",  "Introduced")
 summary.fix2.wide$total <- summary.fix2.wide$Not_introduced+summary.fix2.wide$Introduced
 summary.fix2.wide$prop.introduced <- summary.fix2.wide$Introduced/summary.fix2.wide$total
 prop.fix <- paste0(summary.fix2.wide$Introduced, "/", summary.fix2.wide$total)
-  
+
 inset_p_fix <- ggplot(data=summary.fix2.wide, aes(x=fixer, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nodules")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=fixer, y=0.05, label=prop.fix), color="white")
 
 #Mycorrhizae figure
 summary.AM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(AM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
-kable(summary.AM)
-```
+#kable(summary.AM)
 
-| AM  |   n | mean_num_introduced | sd_num_introduced | se_num_introduced |
-|:----|----:|--------------------:|------------------:|------------------:|
-| N   |  22 |            6.954546 |          8.126836 |         1.7326471 |
-| Y   | 308 |           13.331169 |         14.933754 |         0.8509296 |
-
-``` r
 p_AM <- ggplot(data=summary.AM, aes(x=AM, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=AM, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("AM")+geom_text(aes(x=AM, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 13, label = "ns")
 
 summary.EM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(EM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
@@ -449,91 +411,35 @@ kable(summary.EM)
 ``` r
 p_EM <- ggplot(data=summary.EM, aes(x=EM, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EM, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EM")+geom_text(aes(x=EM, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 13, label = "ns")
 
-#Or
-summary.AMEM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(AM, EM, introducedY) %>% dplyr::summarize(n=n()))
-summary.AMEM2.wide <- spread(summary.AMEM2, key = introducedY, value=n)
-colnames(summary.AMEM2.wide) <- c("AM", "EM","Not_introduced",  "Introduced")
-summary.AMEM2.wide$total <- summary.AMEM2.wide$Not_introduced+summary.AMEM2.wide$Introduced
-summary.AMEM2.wide$prop.introduced <- summary.AMEM2.wide$Introduced/summary.AMEM2.wide$total
-prop.AMEM <- paste0(summary.AMEM2.wide$Introduced, "/", summary.AMEM2.wide$total)
+summary.AM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(AM, introducedY) %>% dplyr::summarize(n=n()))
+summary.AM2.wide <- spread(summary.AM2, key = introducedY, value=n)
+colnames(summary.AM2.wide) <- c("AM", "Not_introduced",  "Introduced")
+summary.AM2.wide$total <- summary.AM2.wide$Not_introduced+summary.AM2.wide$Introduced
+summary.AM2.wide$prop.introduced <- summary.AM2.wide$Introduced/summary.AM2.wide$total
+prop.AM <- paste0(summary.AM2.wide$Introduced, "/", summary.AM2.wide$total)
 
-inset_p_AMEM <- ggplot(data=summary.AMEM2.wide, aes(x=AM, y=prop.introduced, fill=EM))+geom_bar(stat="identity", position=position_dodge())+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("AM")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1, y = 0.55, label = "*")+scale_fill_grey(labels=c("No", "Yes"))+geom_text(aes(x=c(0.77, 1.21, 1.78, 2.21), y=0.05, label=prop.AMEM), color="white")
+inset_p_AM <- ggplot(data=summary.AM2.wide, aes(x=AM, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("AM")+scale_y_continuous(limits=y_inset_limits)+annotate("text",x = 1.5, y = 0.55,label = "ns")+geom_text(aes(x=AM, y=0.05, label=prop.AM), color="white")
 
-fig1top <- plot_grid(inset_p_EFN, inset_p_dom, inset_p_fix, inset_p_AMEM, labels=c("AUTO"), nrow=1, rel_widths = c(1,1,1,2))
+summary.EM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(EM, introducedY) %>% dplyr::summarize(n=n()))
+summary.EM2.wide <- spread(summary.EM2, key = introducedY, value=n)
+colnames(summary.EM2.wide) <- c("EM", "Not_introduced",  "Introduced")
+summary.EM2.wide$total <- summary.EM2.wide$Not_introduced+summary.EM2.wide$Introduced
+summary.EM2.wide$prop.introduced <- summary.EM2.wide$Introduced/summary.EM2.wide$total
+prop.EM <- paste0(summary.EM2.wide$Introduced, "/", summary.EM2.wide$total)
+
+inset_p_EM <- ggplot(data=summary.EM2.wide, aes(x=EM, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("EM")+scale_y_continuous(limits=y_inset_limits)+annotate("text",x = 1.5, y = 0.55,label = "ns")+geom_text(aes(x=EM, y=0.05, label=prop.EM), color="white")
+
+fig1top <- plot_grid(inset_p_EFN, inset_p_dom, inset_p_fix, inset_p_AM, inset_p_EM, labels=c("AUTO"), nrow=1)
 fig1bottom <-plot_grid(p_EFN, p_dom, p_fix, p_AM, p_EM, nrow=1, ncol=5, labels=c("E", "F", "G", "H", "I"))
 fig1 <- plot_grid(fig1top, fig1bottom, nrow=2)
 fig1
 ```
 
-![](README_files/figure-gfm/Dot%20and%20whisker%20plots-1.png)<!-- -->
+![](README_files/figure-gfm/Legume%20plots%20for%20number%20of%20introduced%20ranges-1.png)<!-- -->
 
 ``` r
 save_plot("Figure1.pdf", fig1, base_height=8, base_width=8)
 ```
-
-#### Total introduced area
-
-We might prefer to plot total introduced area, instead of the number of
-introduced ranges.
-
-``` r
-pt_size <- 3
-y_limits <- c(-500000, 7e+12)
-er_width <- 0.1
-y_text <- 0
-
-summary.efn.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
-
-p_EFN_area <- ggplot(data=summary.efn.area, aes(x=EFN, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
-
-summary.dom.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
-kable(summary.dom.area)
-```
-
-| Domatia |    n | mean_area_introduced | sd_area_introduced | se_area_introduced |
-|:--------|-----:|---------------------:|-------------------:|-------------------:|
-| 0       | 3953 |         1.582357e+12 |       6.502144e+12 |       103417297082 |
-| 1       |   24 |         5.290977e+11 |       1.104627e+12 |       225481104596 |
-
-``` r
-p_dom_area <- ggplot(data=summary.dom.area, aes(x=Domatia, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
-
-summary.fix.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
-kable(summary.fix.area)
-```
-
-| fixer |    n | mean_area_introduced | sd_area_introduced | se_area_introduced |
-|:------|-----:|---------------------:|-------------------:|-------------------:|
-| 0     |  396 |         1.995301e+12 |       6.040271e+12 |       303535045685 |
-| 1     | 3581 |         1.529633e+12 |       6.529860e+12 |       109119327208 |
-
-``` r
-p_fix_area <- ggplot(data=summary.fix.area, aes(x=fixer, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
-
-summary.myco.area <- ungroup(subset(df, !is.na(num_introduced)) %>% group_by(myco) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(total_area_introduced, na.rm=TRUE), sd_area_introduced = sd(total_area_introduced, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n)))
-kable(summary.myco.area)
-```
-
-| myco |    n | mean_area_introduced | sd_area_introduced | se_area_introduced |
-|:-----|-----:|---------------------:|-------------------:|-------------------:|
-| 0    |   33 |         3.194037e+12 |       8.008639e+12 |       1.394125e+12 |
-| 1    |  690 |         5.765715e+12 |       1.325680e+13 |       5.046778e+11 |
-| NA   | 3254 |         6.711765e+11 |       2.992716e+12 |       5.246343e+10 |
-
-``` r
-p_myco_area <- ggplot(data=subset(summary.myco.area, !is.na(myco)), aes(x=myco, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=myco, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced range area (sq. km)")+xlab("Mycorrhizae")+geom_text(aes(x=myco, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
-
-fig1_area <- plot_grid(p_EFN_area, p_dom_area, p_myco_area, p_fix_area, nrow=1, labels="AUTO")
-fig1_area
-```
-
-![](README_files/figure-gfm/Dot%20and%20whisker%20plots%20for%20introduced%20area-1.png)<!-- -->
-
-``` r
-save_plot("Figure1alt.pdf", fig1_area, base_height=4, base_width=8)
-```
-
-#### Total native area
 
 We can also plot the effect of the same mutualistic traits on the native
 range size of legumes.
@@ -586,7 +492,7 @@ fig2 <- plot_grid(p_EFN_dom_native, p_fix_native, p_AM_native, p_EM_native, nrow
 fig2
 ```
 
-![](README_files/figure-gfm/Dots%20and%20whiskers%20plots%20for%20native%20area-1.png)<!-- -->
+![](README_files/figure-gfm/Legume%20plots%20for%20native%20area-1.png)<!-- -->
 
 ``` r
 save_plot("Figure2.pdf", fig2, base_height = 4, base_width = 12)
@@ -606,34 +512,8 @@ phydiff <- setdiff(zanne$tip.label, df$Phy2)
 pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
 
 range_pgls <- df[df$Phy2 %in% phyint, ]
-colnames(range_pgls)
-```
-
-    ##  [1] "Phy"                   "introduced"            "native"               
-    ##  [4] "num_introduced"        "total_area_introduced" "total_area_native"    
-    ##  [7] "lat_native"            "tribe"                 "genus"                
-    ## [10] "subfamily"             "tribe_ncbi"            "fixer"                
-    ## [13] "abs_lat_native"        "woody"                 "annual"               
-    ## [16] "uses_num_uses"         "submitted_name"        "matched_name"         
-    ## [19] "data_source_title"     "score"                 "num_words"            
-    ## [22] "diff"                  "RangeY"                "domY"                 
-    ## [25] "efnY"                  "n.records"             "sum.AM"               
-    ## [28] "sum.EM"                "AM"                    "EM"                   
-    ## [31] "EFN"                   "matched_name_EFN"      "Domatia"              
-    ## [34] "myco"                  "introducedY"           "Phy2"
-
-``` r
-which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
-```
-
-    ##       lat_native   abs_lat_native           RangeY             domY 
-    ##                7               13               23               24 
-    ##             efnY        n.records           sum.AM           sum.EM 
-    ##               25               26               27               28 
-    ##               AM               EM matched_name_EFN             myco 
-    ##               29               30               32               34
-
-``` r
+#colnames(range_pgls)
+#which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
 range_pgls <-range_pgls[,-c(23:30, 32, 34)] #Remove some unneeded columns
 range_pgls <- range_pgls[complete.cases(range_pgls), ] #removing NA elements
 ```
@@ -697,88 +577,14 @@ summary(pgls1)
 
 ``` r
 #Diagnostic plots
-plot(pgls1$residuals, pgls1$fitted)
-```
+#plot(pgls1$residuals, pgls1$fitted)
+#qqnorm(pgls1$residuals)
+#qqline(pgls1$residuals)
 
-![](README_files/figure-gfm/Legume%20pgls%20models-1.png)<!-- -->
-
-``` r
-qqnorm(pgls1$residuals)
-qqline(pgls1$residuals)
-```
-
-![](README_files/figure-gfm/Legume%20pgls%20models-2.png)<!-- -->
-
-``` r
-#PGLS of total introduced area
-pgls2 <- gls(log(total_area_introduced/1e+6 + 1) ~  EFN+Domatia+fixer+
-            total_area_native + abs_lat_native + uses_num_uses+ annual + woody, 
-            correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), 
-            method = "ML", data = range_pgls) 
-summary(pgls2)
-```
-
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log(total_area_introduced/1e+06 + 1) ~ EFN + Domatia + fixer +      total_area_native + abs_lat_native + uses_num_uses + annual +      woody 
-    ##   Data: range_pgls 
-    ##        AIC      BIC    logLik
-    ##   7646.726 7702.899 -3812.363
-    ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy2 
-    ##  Parameter estimate(s):
-    ##     lambda 
-    ## 0.03965764 
-    ## 
-    ## Coefficients:
-    ##                       Value Std.Error   t-value p-value
-    ## (Intercept)       -0.149150 0.9843678 -0.151518  0.8796
-    ## EFN1               3.175815 0.5676230  5.594937  0.0000
-    ## Domatia1          -1.103148 2.4796089 -0.444888  0.6565
-    ## fixer1             0.148494 0.6689894  0.221967  0.8244
-    ## total_area_native  0.000000 0.0000000  0.770150  0.4414
-    ## abs_lat_native     0.025891 0.0144520  1.791489  0.0735
-    ## uses_num_uses      2.267574 0.0949966 23.870043  0.0000
-    ## annual             1.628732 0.5455796  2.985324  0.0029
-    ## woody              1.374633 0.4982229  2.759073  0.0059
-    ## 
-    ##  Correlation: 
-    ##                   (Intr) EFN1   Domat1 fixer1 ttl_r_ abs_l_ uss_n_ annual
-    ## EFN1              -0.031                                                 
-    ## Domatia1          -0.018  0.001                                          
-    ## fixer1            -0.357 -0.087 -0.059                                   
-    ## total_area_native -0.168 -0.019 -0.009 -0.058                            
-    ## abs_lat_native    -0.374  0.051  0.056 -0.113  0.101                     
-    ## uses_num_uses     -0.069 -0.120  0.017  0.109 -0.436  0.007              
-    ## annual            -0.263 -0.001  0.007 -0.028  0.107  0.133  0.008       
-    ## woody             -0.542  0.006 -0.005  0.036  0.151  0.179 -0.090  0.411
-    ## 
-    ## Standardized residuals:
-    ##        Min         Q1        Med         Q3        Max 
-    ## -2.9058187 -0.4625303 -0.2970511  0.9280070  2.8987742 
-    ## 
-    ## Residual standard error: 5.50801 
-    ## Degrees of freedom: 1220 total; 1211 residual
-
-``` r
-#Diagnostic plots
-plot(pgls2$residuals, pgls2$fitted)
-```
-
-![](README_files/figure-gfm/Legume%20pgls%20models-3.png)<!-- -->
-
-``` r
-qqnorm(pgls2$residuals)
-qqline(pgls2$residuals)
-```
-
-![](README_files/figure-gfm/Legume%20pgls%20models-4.png)<!-- -->
-
-``` r
 #Repeating for native area
 #PGLS with both EFN and domatia presence and fixer, interaction and covariates
-pgls3 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
-summary(pgls3)
+pgls2 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
+summary(pgls2)
 ```
 
     ## Generalized least squares fit by maximum likelihood
@@ -825,17 +631,10 @@ summary(pgls3)
 
 ``` r
 #Diagnostic plots
-plot(pgls3$residuals, pgls3$fitted)
+#plot(pgls2$residuals, pgls2$fitted)
+#qqnorm(pgls2$residuals)
+#qqline(pgls2$residuals)
 ```
-
-![](README_files/figure-gfm/Legume%20pgls%20models-5.png)<!-- -->
-
-``` r
-qqnorm(pgls3$residuals)
-qqline(pgls3$residuals)
-```
-
-![](README_files/figure-gfm/Legume%20pgls%20models-6.png)<!-- -->
 
 #### PGLS models for mycorrhizae
 
@@ -847,19 +646,13 @@ phydiff1 <- setdiff(zanne$tip.label, range_myco$Phy2)
 pruned.myco.pgls <- drop.tip(zanne, phydiff1) #dropping tips not in the dataset
 
 range_myco_pgls <- range_myco[range_myco$Phy2 %in% phyint1, ]
-which(colSums(is.na(range_myco_pgls))>0) #Check which columns have NAs
-```
-
-    ##       lat_native   abs_lat_native matched_name_EFN 
-    ##                7               13               32
-
-``` r
+#which(colSums(is.na(range_myco_pgls))>0) #Check which columns have NAs
 range_myco_pgls <-range_myco_pgls[,-c(32)] #Remove some unneeded columns
 range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ] #removing NA elements
 
 #PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-pgls4 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
-summary(pgls4)
+pgls3 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
+summary(pgls3)
 ```
 
     ## Generalized least squares fit by maximum likelihood
@@ -903,57 +696,9 @@ summary(pgls4)
     ## Degrees of freedom: 384 total; 376 residual
 
 ``` r
-#PGLS of total introduced area
-pgls5 <- gls(log(total_area_introduced/1e+6 + 1) ~  AM +EM+
-            total_area_native + abs_lat_native + uses_num_uses+ annual + woody, 
-            correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), 
-            method = "ML", data = range_myco_pgls) 
-summary(pgls5)
-```
-
-    ## Generalized least squares fit by maximum likelihood
-    ##   Model: log(total_area_introduced/1e+06 + 1) ~ AM + EM + total_area_native +      abs_lat_native + uses_num_uses + annual + woody 
-    ##   Data: range_myco_pgls 
-    ##        AIC      BIC    logLik
-    ##   2453.348 2492.855 -1216.674
-    ## 
-    ## Correlation Structure: corPagel
-    ##  Formula: ~Phy2 
-    ##  Parameter estimate(s):
-    ##    lambda 
-    ## 0.2763967 
-    ## 
-    ## Coefficients:
-    ##                       Value Std.Error   t-value p-value
-    ## (Intercept)        3.761190 2.1029283  1.788549  0.0745
-    ## AMY               -0.528574 1.1213240 -0.471384  0.6376
-    ## EMY                0.088337 0.9808715  0.090059  0.9283
-    ## total_area_native  0.000000 0.0000000 -0.497487  0.6191
-    ## abs_lat_native     0.010387 0.0266908  0.389150  0.6974
-    ## uses_num_uses      1.936326 0.1355741 14.282415  0.0000
-    ## annual             2.021161 1.2178874  1.659563  0.0978
-    ## woody              0.466847 0.9913453  0.470923  0.6380
-    ## 
-    ##  Correlation: 
-    ##                   (Intr) AMY    EMY    ttl_r_ abs_l_ uss_n_ annual
-    ## AMY               -0.469                                          
-    ## EMY               -0.101  0.227                                   
-    ## total_area_native -0.168  0.003  0.049                            
-    ## abs_lat_native    -0.341  0.029 -0.146  0.020                     
-    ## uses_num_uses     -0.040 -0.105  0.007 -0.308  0.132              
-    ## annual            -0.217  0.035 -0.009  0.225  0.152 -0.076       
-    ## woody             -0.475  0.009 -0.109  0.146  0.167 -0.097  0.312
-    ## 
-    ## Standardized residuals:
-    ##          Min           Q1          Med           Q3          Max 
-    ## -2.186608040 -0.640473432 -0.007923054  0.929536047  2.122576304 
-    ## 
-    ## Residual standard error: 6.303302 
-    ## Degrees of freedom: 384 total; 376 residual
-
-``` r
-pgls6 <- gls((total_area_native)^(1/4) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
-summary(pgls6)
+#Repeating for native area
+pgls4 <- gls((total_area_native)^(1/4) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
+summary(pgls4)
 ```
 
     ## Generalized least squares fit by maximum likelihood
@@ -1042,7 +787,7 @@ fit.amem <- fitPagel(pruned.pagel, AM, EM)
 amem <- plot(fit.amem,lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-1.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-1.png)<!-- -->
 
 ``` r
 fit.amefn <- fitPagel(pruned.pagel, AM, EFN) #nonsig
@@ -1051,14 +796,14 @@ fit.amdom <- fitPagel(pruned.pagel, AM, Domatia) #signif.
 amdom <- plot(fit.amdom,lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-2.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-2.png)<!-- -->
 
 ``` r
 fit.amfix <- fitPagel(pruned.pagel, AM, fixer) #pval 0.009
 amfix <- plot(fit.amfix,lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-3.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-3.png)<!-- -->
 
 ``` r
 fit.emefn <- fitPagel(pruned.pagel, EM, EFN) #nonsig
@@ -1067,21 +812,21 @@ fit.emdom <- fitPagel(pruned.pagel, EM, Domatia)
 emdom <- plot(fit.emdom,lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-4.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-4.png)<!-- -->
 
 ``` r
 fit.emfix <- fitPagel(pruned.pagel, EM, fixer) #pval 0.0004
 emfix <- plot(fit.emfix, lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-5.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-5.png)<!-- -->
 
 ``` r
 fit.efndom <- fitPagel(pruned.pagel, EFN, Domatia)
 efndom <- plot(fit.efndom, lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-6.png)<!-- -->
+![](README_files/figure-gfm/Legume%20Pagel-6.png)<!-- -->
 
 ``` r
 fit.efnfix <- fitPagel(pruned.pagel, EFN, fixer) #nonsig
@@ -1090,89 +835,66 @@ fit.domfix <- fitPagel(pruned.pagel, Domatia, fixer) #marginally sig
 domfix <- plot(fit.domfix, lwd.by.rate=TRUE)
 ```
 
-![](README_files/figure-gfm/plant%20Pagel-7.png)<!-- --> \#### Mixed
+![](README_files/figure-gfm/Legume%20Pagel-7.png)<!-- --> \#### Mixed
 models Another possible approach is to use mixed models with legume
-genus as a random effect to account for the non-independence of species
-in a genus. The response variables (number of introduced ranges and
+tribe as a random effect to account for the non-independence of species
+in a tribe. The response variables (number of introduced ranges and
 total introduced area) are very non-normal so we fit two models: a
 binomial GLMM modelling whether or not a legume species is introduced,
-and linear mixed models of the number of introduced ranges or total
-introduced area for introduced species only.
-
-``` r
-#Checking correlation between variables
-df_cor <- data.frame(as.numeric(df$fixer), as.numeric(df$EFN), as.numeric(df$Domatia), as.numeric(df$EM), as.numeric(df$AM), #mutualisms
-                     df$woody, df$annual, df$uses_num_uses, df$abs_lat_native) #covariates
-# <- cor(df_cor)
-colnames(df_cor) <- c("fixer", "EFN", "Domatia", "EM", "AM", "Woody", "Annual", "Uses", "Abs_lat")
-corr <- rcorr(as.matrix(df_cor))
-
-plotr <- corrplot(corr$r, type = "upper", order = "hclust", 
-         tl.col = "black", tl.srt = 45) #correlation coeffs
-```
-
-![](README_files/figure-gfm/Legume%20mixed%20models-1.png)<!-- -->
-
-``` r
-plotp <- corrplot(corr$P, type = "upper", order = "hclust", 
-         tl.col = "black", tl.srt = 45) #p-values
-```
-
-![](README_files/figure-gfm/Legume%20mixed%20models-2.png)<!-- -->
+and linear mixed models of the number of introduced ranges for
+introduced species only.
 
 ``` r
 #Fit binomial model for whether or not a legume species has been introduced
-binomial1 <- glmer(introducedY~fixer*uses_num_uses + fixer + EFN+Domatia+scale(total_area_native)+woody+annual+scale(abs_lat_native)+(1|tribe_ncbi), data=df, family="binomial",glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
+binomial1 <- glmer(introducedY~EFN+Domatia+fixer+uses_num_uses + +scale(total_area_native)+woody+annual+scale(abs_lat_native)+(1|tribe_ncbi), data=df, family="binomial",glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
 summary(binomial1) 
 ```
 
     ## Generalized linear mixed model fit by maximum likelihood (Laplace
     ##   Approximation) [glmerMod]
     ##  Family: binomial  ( logit )
-    ## Formula: introducedY ~ fixer * uses_num_uses + fixer + EFN + Domatia +  
-    ##     scale(total_area_native) + woody + annual + scale(abs_lat_native) +  
-    ##     (1 | tribe_ncbi)
+    ## Formula: 
+    ## introducedY ~ EFN + Domatia + fixer + uses_num_uses + +scale(total_area_native) +  
+    ##     woody + annual + scale(abs_lat_native) + (1 | tribe_ncbi)
     ##    Data: df
     ## Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e+05))
     ## 
     ##      AIC      BIC   logLik deviance df.resid 
-    ##   2544.9   2612.8  -1261.4   2522.9     3523 
+    ##   2548.7   2610.4  -1264.3   2528.7     3524 
     ## 
     ## Scaled residuals: 
     ##      Min       1Q   Median       3Q      Max 
-    ## -14.7388  -0.3819  -0.2651  -0.1467   6.2195 
+    ## -12.8332  -0.3798  -0.2683  -0.1496   6.0569 
     ## 
     ## Random effects:
     ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.5034   0.7095  
+    ##  tribe_ncbi (Intercept) 0.5172   0.7192  
     ## Number of obs: 3534, groups:  tribe_ncbi, 51
     ## 
     ## Fixed effects:
     ##                          Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)              -3.20650    0.31486 -10.184  < 2e-16 ***
-    ## fixer1                    0.02090    0.27189   0.077 0.938719    
-    ## uses_num_uses             0.75967    0.10397   7.307 2.74e-13 ***
-    ## EFN1                      1.25903    0.19518   6.451 1.11e-10 ***
-    ## Domatia1                  0.39751    0.64320   0.618 0.536566    
-    ## scale(total_area_native)  0.17335    0.05770   3.004 0.002663 ** 
-    ## woody                     0.78305    0.16289   4.807 1.53e-06 ***
-    ## annual                    0.68973    0.18810   3.667 0.000246 ***
-    ## scale(abs_lat_native)     0.09114    0.06933   1.315 0.188653    
-    ## fixer1:uses_num_uses      0.29484    0.11605   2.541 0.011067 *  
+    ## (Intercept)              -3.54423    0.29574 -11.984  < 2e-16 ***
+    ## EFN1                      1.26097    0.19526   6.458 1.06e-10 ***
+    ## Domatia1                  0.42297    0.64236   0.658 0.510241    
+    ## fixer1                    0.39808    0.23785   1.674 0.094195 .  
+    ## uses_num_uses             1.00359    0.04929  20.360  < 2e-16 ***
+    ## scale(total_area_native)  0.18717    0.05715   3.275 0.001057 ** 
+    ## woody                     0.77924    0.16144   4.827 1.39e-06 ***
+    ## annual                    0.66719    0.18629   3.581 0.000342 ***
+    ## scale(abs_lat_native)     0.09315    0.06942   1.342 0.179700    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##             (Intr) fixer1 uss_n_ EFN1   Domat1 scl(t__) woody  annual scl(b__)
-    ## fixer1      -0.761                                                            
-    ## uses_num_ss -0.464  0.521                                                     
-    ## EFN1        -0.060  0.041  0.015                                              
-    ## Domatia1     0.027 -0.063  0.033 -0.013                                       
-    ## scl(ttl_r_) -0.046  0.032 -0.055 -0.033  0.006                                
-    ## woody       -0.462  0.056 -0.015 -0.034 -0.001  0.142                         
-    ## annual      -0.195 -0.057 -0.009 -0.018  0.020  0.079    0.419                
-    ## scl(bs_lt_)  0.018 -0.104  0.003  0.027  0.095  0.129    0.150  0.130         
-    ## fxr1:ss_nm_  0.403 -0.543 -0.884 -0.001 -0.017 -0.109    0.015  0.056 -0.012
+    ##             (Intr) EFN1   Domat1 fixer1 uss_n_ scl(t__) woody  annual
+    ## EFN1        -0.067                                                   
+    ## Domatia1     0.040 -0.013                                            
+    ## fixer1      -0.721  0.053 -0.089                                     
+    ## uses_num_ss -0.241  0.027  0.036  0.091                              
+    ## scl(ttl_r_)  0.000 -0.031  0.003 -0.031 -0.330                       
+    ## woody       -0.494 -0.035 -0.001  0.072 -0.002  0.142                
+    ## annual      -0.229 -0.019  0.020 -0.031  0.088  0.085    0.417       
+    ## scl(bs_lt_)  0.026  0.026  0.094 -0.128 -0.015  0.128    0.149  0.132
 
 ``` r
 Anova(binomial1, type=3)
@@ -1182,63 +904,56 @@ Anova(binomial1, type=3)
     ## 
     ## Response: introducedY
     ##                             Chisq Df Pr(>Chisq)    
-    ## (Intercept)              103.7148  1  < 2.2e-16 ***
-    ## fixer                      0.0059  1  0.9387187    
-    ## uses_num_uses             53.3865  1  2.740e-13 ***
-    ## EFN                       41.6121  1  1.113e-10 ***
-    ## Domatia                    0.3819  1  0.5365658    
-    ## scale(total_area_native)   9.0249  1  0.0026632 ** 
-    ## woody                     23.1095  1  1.530e-06 ***
-    ## annual                    13.4453  1  0.0002456 ***
-    ## scale(abs_lat_native)      1.7281  1  0.1886529    
-    ## fixer:uses_num_uses        6.4545  1  0.0110674 *  
+    ## (Intercept)              143.6190  1  < 2.2e-16 ***
+    ## EFN                       41.7052  1  1.061e-10 ***
+    ## Domatia                    0.4336  1  0.5102414    
+    ## fixer                      2.8012  1  0.0941951 .  
+    ## uses_num_uses            414.5199  1  < 2.2e-16 ***
+    ## scale(total_area_native)  10.7248  1  0.0010571 ** 
+    ## woody                     23.2994  1  1.386e-06 ***
+    ## annual                    12.8270  1  0.0003417 ***
+    ## scale(abs_lat_native)      1.8001  1  0.1796995    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(binomial1)
-```
+#plot(binomial1)
 
-![](README_files/figure-gfm/Legume%20mixed%20models-3.png)<!-- -->
-
-``` r
 #Fit binomial model without random effect
-binomial2 <- glm(introducedY~fixer*uses_num_uses+EFN*Domatia+fixer+scale(total_area_native)+woody+annual+scale(abs_lat_native)+uses_num_uses, data=df, family="binomial")
+binomial2 <- glm(introducedY~EFN+Domatia+fixer+uses_num_uses + +scale(total_area_native)+woody+annual+scale(abs_lat_native), data=df, family="binomial")
 summary(binomial2) 
 ```
 
     ## 
     ## Call:
-    ## glm(formula = introducedY ~ fixer * uses_num_uses + EFN * Domatia + 
-    ##     fixer + scale(total_area_native) + woody + annual + scale(abs_lat_native) + 
-    ##     uses_num_uses, family = "binomial", data = df)
+    ## glm(formula = introducedY ~ EFN + Domatia + fixer + uses_num_uses + 
+    ##     +scale(total_area_native) + woody + annual + scale(abs_lat_native), 
+    ##     family = "binomial", data = df)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -3.3161  -0.5035  -0.4233  -0.3193   2.5368  
+    ## -3.2228  -0.5086  -0.4211  -0.3255   2.5215  
     ## 
     ## Coefficients:
     ##                          Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)              -2.58318    0.24473 -10.555  < 2e-16 ***
-    ## fixer1                   -0.22870    0.22398  -1.021 0.307206    
-    ## uses_num_uses             0.73919    0.09651   7.659 1.87e-14 ***
-    ## EFN1                      1.28905    0.17224   7.484 7.21e-14 ***
-    ## Domatia1                  0.46998    0.75473   0.623 0.533474    
-    ## scale(total_area_native)  0.20525    0.05473   3.750 0.000176 ***
-    ## woody                     0.52827    0.14376   3.675 0.000238 ***
-    ## annual                    0.98970    0.16762   5.904 3.54e-09 ***
-    ## scale(abs_lat_native)     0.13697    0.05312   2.579 0.009918 ** 
-    ## fixer1:uses_num_uses      0.30376    0.10858   2.798 0.005149 ** 
-    ## EFN1:Domatia1             0.35515    1.58532   0.224 0.822740    
+    ## (Intercept)              -2.92981    0.22214 -13.189  < 2e-16 ***
+    ## EFN1                      1.29612    0.17120   7.571 3.71e-14 ***
+    ## Domatia1                  0.57800    0.64606   0.895 0.370979    
+    ## fixer1                    0.17028    0.18442   0.923 0.355841    
+    ## uses_num_uses             0.98857    0.04685  21.101  < 2e-16 ***
+    ## scale(total_area_native)  0.21954    0.05411   4.057 4.97e-05 ***
+    ## woody                     0.52052    0.14220   3.660 0.000252 ***
+    ## annual                    0.96310    0.16558   5.816 6.01e-09 ***
+    ## scale(abs_lat_native)     0.13854    0.05291   2.619 0.008827 ** 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
     ##     Null deviance: 3814.5  on 3533  degrees of freedom
-    ## Residual deviance: 2636.7  on 3523  degrees of freedom
+    ## Residual deviance: 2643.8  on 3525  degrees of freedom
     ##   (443 observations deleted due to missingness)
-    ## AIC: 2658.7
+    ## AIC: 2661.8
     ## 
     ## Number of Fisher Scoring iterations: 5
 
@@ -1250,37 +965,33 @@ Anova(binomial2, type=3)
     ## 
     ## Response: introducedY
     ##                          LR Chisq Df Pr(>Chisq)    
-    ## fixer                       1.007  1  0.3157180    
-    ## uses_num_uses              90.863  1  < 2.2e-16 ***
-    ## EFN                        53.176  1  3.050e-13 ***
-    ## Domatia                     0.348  1  0.5554063    
-    ## scale(total_area_native)   14.225  1  0.0001622 ***
-    ## woody                      14.038  1  0.0001792 ***
-    ## annual                     34.796  1  3.662e-09 ***
-    ## scale(abs_lat_native)       6.688  1  0.0097076 ** 
-    ## fixer:uses_num_uses         6.999  1  0.0081575 ** 
-    ## EFN:Domatia                 0.051  1  0.8215439    
+    ## EFN                         54.45  1  1.595e-13 ***
+    ## Domatia                      0.73  1  0.3938985    
+    ## fixer                        0.87  1  0.3519939    
+    ## uses_num_uses              703.67  1  < 2.2e-16 ***
+    ## scale(total_area_native)    16.70  1  4.377e-05 ***
+    ## woody                       13.92  1  0.0001909 ***
+    ## annual                      33.67  1  6.532e-09 ***
+    ## scale(abs_lat_native)        6.90  1  0.0086259 ** 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(binomial2)
-```
+#plot(binomial2)
 
-![](README_files/figure-gfm/Legume%20mixed%20models-4.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-5.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-6.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-7.png)<!-- -->
-
-``` r
 #Compare models
 anova(binomial1, binomial2) #Random effect improves model fit to data
 ```
 
     ## Data: df
     ## Models:
-    ## binomial1: introducedY ~ fixer * uses_num_uses + fixer + EFN + Domatia + scale(total_area_native) + woody + annual + scale(abs_lat_native) + (1 | tribe_ncbi)
-    ## binomial2: introducedY ~ fixer * uses_num_uses + EFN * Domatia + fixer + scale(total_area_native) + woody + annual + scale(abs_lat_native) + uses_num_uses
-    ##           npar    AIC    BIC  logLik deviance Chisq Df Pr(>Chisq)
-    ## binomial1   11 2544.9 2612.8 -1261.4   2522.9                    
-    ## binomial2   11 2658.7 2726.6 -1318.4   2636.7     0  0
+    ## binomial2: introducedY ~ EFN + Domatia + fixer + uses_num_uses + +scale(total_area_native) + woody + annual + scale(abs_lat_native)
+    ## binomial1: introducedY ~ EFN + Domatia + fixer + uses_num_uses + +scale(total_area_native) + woody + annual + scale(abs_lat_native) + (1 | tribe_ncbi)
+    ##           npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)    
+    ## binomial2    9 2661.8 2717.3 -1321.9   2643.8                         
+    ## binomial1   10 2548.7 2610.4 -1264.3   2528.7 115.06  1  < 2.2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 #Fit a linear mixed model for how many new ranges an introduced legume has established in, and how much total area they cover
@@ -1333,7 +1044,7 @@ summary(lmer1)
     ## uses_num_ss -0.284 -0.044 -0.019  0.087  0.036   -0.376    0.012 -0.053
 
 ``` r
-Anova(lmer1, type=3,)
+Anova(lmer1, type=3)
 ```
 
     ## Analysis of Deviance Table (Type III Wald chisquare tests)
@@ -1353,15 +1064,11 @@ Anova(lmer1, type=3,)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(lmer1)
-```
+#plot(lmer1)
 
-![](README_files/figure-gfm/Legume%20mixed%20models-8.png)<!-- -->
-
-``` r
 #Removed the interaction when nonsig or the number of species showing trait combinations was too small
 
-#Number of introduced ranges without random effect of genus
+#Number of introduced ranges without random effect of tribe
 lm2 <- lm(log(num_introduced)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses, data=legume_range_df_introducedY)
 summary(lm2)
 ```
@@ -1417,14 +1124,10 @@ Anova(lm2, type=3)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(lm2)
-```
+#plot(lm2)
 
-![](README_files/figure-gfm/Legume%20mixed%20models-9.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-10.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-11.png)<!-- -->![](README_files/figure-gfm/Legume%20mixed%20models-12.png)<!-- -->
-
-``` r
 #Compare models
-anova(lmer1, lm2) #Random effect improves model fit to data
+anova(lmer1, lm2) #Random effect improves model fit to data 
 ```
 
     ## Data: legume_range_df_introducedY
@@ -1438,140 +1141,52 @@ anova(lmer1, lm2) #Random effect improves model fit to data
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-#Introduced area (if introduced at all)
-lmer2 <- lmer(log(total_area_introduced/1e+6)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi), data=legume_range_df_introducedY) 
-summary(lmer2)
-```
-
-    ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: 
-    ## log(total_area_introduced/1e+06) ~ EFN + Domatia + fixer + scale(abs_lat_native) +  
-    ##     scale(total_area_native) + annual + woody + uses_num_uses +  
-    ##     (1 | tribe_ncbi)
-    ##    Data: legume_range_df_introducedY
-    ## 
-    ## REML criterion at convergence: 3717.4
-    ## 
-    ## Scaled residuals: 
-    ##     Min      1Q  Median      3Q     Max 
-    ## -5.3614 -0.5074  0.2251  0.6725  1.8533 
-    ## 
-    ## Random effects:
-    ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.2051   0.4529  
-    ##  Residual               5.4791   2.3407  
-    ## Number of obs: 814, groups:  tribe_ncbi, 39
-    ## 
-    ## Fixed effects:
-    ##                          Estimate Std. Error t value
-    ## (Intercept)              13.65018    0.40527  33.682
-    ## EFN1                      0.25734    0.25026   1.028
-    ## Domatia1                 -0.33832    0.97991  -0.345
-    ## fixer1                   -0.51137    0.33635  -1.520
-    ## scale(abs_lat_native)     0.30137    0.10549   2.857
-    ## scale(total_area_native) -0.37416    0.09443  -3.962
-    ## annual                    0.46486    0.30434   1.527
-    ## woody                    -0.71074    0.25223  -2.818
-    ## uses_num_uses             0.53144    0.04199  12.657
-    ## 
-    ## Correlation of Fixed Effects:
-    ##             (Intr) EFN1   Domat1 fixer1 scl(b__) scl(t__) annual woody 
-    ## EFN1        -0.049                                                     
-    ## Domatia1     0.026 -0.017                                              
-    ## fixer1      -0.781  0.028 -0.040                                       
-    ## scl(bs_lt_)  0.015  0.064  0.061 -0.130                                
-    ## scl(ttl_r_)  0.073 -0.026 -0.003 -0.109  0.060                         
-    ## annual      -0.270  0.013 -0.002 -0.027 -0.017    0.183                
-    ## woody       -0.552 -0.088 -0.013  0.123  0.147    0.177    0.431       
-    ## uses_num_ss -0.289 -0.042 -0.019  0.089  0.035   -0.376    0.014 -0.055
-
-``` r
-Anova(lmer2, type=3)
-```
-
-    ## Analysis of Deviance Table (Type III Wald chisquare tests)
-    ## 
-    ## Response: log(total_area_introduced/1e+06)
-    ##                              Chisq Df Pr(>Chisq)    
-    ## (Intercept)              1134.4495  1  < 2.2e-16 ***
-    ## EFN                         1.0574  1   0.303811    
-    ## Domatia                     0.1192  1   0.729904    
-    ## fixer                       2.3114  1   0.128425    
-    ## scale(abs_lat_native)       8.1621  1   0.004277 ** 
-    ## scale(total_area_native)   15.6999  1  7.423e-05 ***
-    ## annual                      2.3330  1   0.126658    
-    ## woody                       7.9404  1   0.004834 ** 
-    ## uses_num_uses             160.2112  1  < 2.2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-plot(lmer2)
-```
-
-![](README_files/figure-gfm/Legume%20mixed%20models-13.png)<!-- -->
-
-``` r
 #Native range size
-lmer3 <- lmer(log(total_area_native/1e+6)~EFN*uses_num_uses+fixer*uses_num_uses+EFN*Domatia+fixer+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=df)
+lmer3 <- lmer(log(total_area_native/1e+6)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi), data=df)
 summary(lmer3)
 ```
 
     ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: log(total_area_native/1e+06) ~ EFN * uses_num_uses + fixer *  
-    ##     uses_num_uses + EFN * Domatia + fixer + annual + woody +  
-    ##     scale(abs_lat_native) + uses_num_uses + (1 | tribe_ncbi)
+    ## Formula: 
+    ## log(total_area_native/1e+06) ~ EFN + Domatia + fixer + scale(abs_lat_native) +  
+    ##     scale(total_area_native) + annual + woody + uses_num_uses +  
+    ##     (1 | tribe_ncbi)
     ##    Data: df
     ## 
-    ## REML criterion at convergence: 11421.6
+    ## REML criterion at convergence: 9289.5
     ## 
     ## Scaled residuals: 
-    ##     Min      1Q  Median      3Q     Max 
-    ## -9.9467 -0.3532  0.1027  0.6065  2.7179 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -12.8397  -0.1316   0.2477   0.5546   1.2705 
     ## 
     ## Random effects:
     ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.1127   0.3357  
-    ##  Residual               1.4445   1.2019  
+    ##  tribe_ncbi (Intercept) 0.04198  0.2049  
+    ##  Residual               0.79133  0.8896  
     ## Number of obs: 3534, groups:  tribe_ncbi, 51
     ## 
     ## Fixed effects:
-    ##                       Estimate Std. Error t value
-    ## (Intercept)           15.04010    0.12106 124.233
-    ## EFN1                   0.11520    0.10923   1.055
-    ## uses_num_uses          0.18311    0.03639   5.033
-    ## fixer1                -0.24345    0.10753  -2.264
-    ## Domatia1               0.51836    0.30019   1.727
-    ## annual                -0.07513    0.07376  -1.019
-    ## woody                 -0.33316    0.05899  -5.648
-    ## scale(abs_lat_native) -0.18060    0.02818  -6.410
-    ## EFN1:uses_num_uses    -0.07957    0.04050  -1.965
-    ## uses_num_uses:fixer1   0.12920    0.03929   3.288
-    ## EFN1:Domatia1         -2.13586    0.67786  -3.151
+    ##                           Estimate Std. Error t value
+    ## (Intercept)              15.043897   0.079732 188.681
+    ## EFN1                     -0.126446   0.065598  -1.928
+    ## Domatia1                  0.117383   0.199588   0.588
+    ## fixer1                   -0.200610   0.069840  -2.872
+    ## scale(abs_lat_native)    -0.034804   0.020678  -1.683
+    ## scale(total_area_native)  0.935653   0.017163  54.516
+    ## annual                    0.086583   0.054487   1.589
+    ## woody                    -0.083735   0.043582  -1.921
+    ## uses_num_uses            -0.003149   0.011640  -0.271
     ## 
     ## Correlation of Fixed Effects:
-    ##             (Intr) EFN1   uss_n_ fixer1 Domat1 annual woody  sc(__) EFN1:_
-    ## EFN1        -0.043                                                        
-    ## uses_num_ss -0.367  0.038                                                 
-    ## fixer1      -0.768  0.021  0.412                                          
-    ## Domatia1     0.013  0.036  0.041 -0.035                                   
-    ## annual      -0.180 -0.016 -0.005 -0.032  0.011                            
-    ## woody       -0.412 -0.026 -0.020  0.066 -0.009  0.392                     
-    ## scl(bs_lt_)  0.035  0.020 -0.009 -0.106  0.078  0.127  0.120              
-    ## EFN1:ss_nm_  0.023 -0.574 -0.097  0.012 -0.010  0.005  0.011  0.017       
-    ## uss_nm_ss:1  0.352  0.005 -0.909 -0.433 -0.032  0.019 -0.012  0.015 -0.060
-    ## EFN1:Domat1  0.017 -0.062 -0.017 -0.018 -0.435  0.000  0.008 -0.008 -0.052
-    ##             us__:1
-    ## EFN1              
-    ## uses_num_ss       
-    ## fixer1            
-    ## Domatia1          
-    ## annual            
-    ## woody             
-    ## scl(bs_lt_)       
-    ## EFN1:ss_nm_       
-    ## uss_nm_ss:1       
-    ## EFN1:Domat1  0.010
+    ##             (Intr) EFN1   Domat1 fixer1 scl(b__) scl(t__) annual woody 
+    ## EFN1        -0.026                                                     
+    ## Domatia1     0.035 -0.014                                              
+    ## fixer1      -0.756  0.019 -0.064                                       
+    ## scl(bs_lt_)  0.040  0.035  0.085 -0.130                                
+    ## scl(ttl_r_)  0.026 -0.027  0.000 -0.030  0.127                         
+    ## annual      -0.208 -0.017  0.013 -0.030  0.129    0.054                
+    ## woody       -0.450 -0.028 -0.006  0.071  0.144    0.106    0.402       
+    ## uses_num_ss -0.116 -0.119  0.008  0.057 -0.041   -0.447    0.005 -0.111
 
 ``` r
 Anova(lmer3, type=3)
@@ -1580,18 +1195,16 @@ Anova(lmer3, type=3)
     ## Analysis of Deviance Table (Type III Wald chisquare tests)
     ## 
     ## Response: log(total_area_native/1e+06)
-    ##                            Chisq Df Pr(>Chisq)    
-    ## (Intercept)           15433.8880  1  < 2.2e-16 ***
-    ## EFN                       1.1124  1   0.291554    
-    ## uses_num_uses            25.3275  1  4.838e-07 ***
-    ## fixer                     5.1254  1   0.023578 *  
-    ## Domatia                   2.9817  1   0.084210 .  
-    ## annual                    1.0374  1   0.308428    
-    ## woody                    31.8988  1  1.624e-08 ***
-    ## scale(abs_lat_native)    41.0839  1  1.458e-10 ***
-    ## EFN:uses_num_uses         3.8600  1   0.049450 *  
-    ## uses_num_uses:fixer      10.8111  1   0.001009 ** 
-    ## EFN:Domatia               9.9282  1   0.001628 ** 
+    ##                               Chisq Df Pr(>Chisq)    
+    ## (Intercept)              35600.6202  1  < 2.2e-16 ***
+    ## EFN                          3.7156  1   0.053905 .  
+    ## Domatia                      0.3459  1   0.556448    
+    ## fixer                        8.2509  1   0.004073 ** 
+    ## scale(abs_lat_native)        2.8329  1   0.092353 .  
+    ## scale(total_area_native)  2972.0456  1  < 2.2e-16 ***
+    ## annual                       2.5251  1   0.112047    
+    ## woody                        3.6915  1   0.054692 .  
+    ## uses_num_uses                0.0732  1   0.786728    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1599,137 +1212,123 @@ Anova(lmer3, type=3)
 plot(lmer3)
 ```
 
-![](README_files/figure-gfm/Legume%20mixed%20models-14.png)<!-- -->
+![](README_files/figure-gfm/Legume%20mixed%20models-1.png)<!-- -->
 
 ``` r
-#Plot the interaction between EFN, domatia and each mutualism with human uses
-
 #Mycorrhizae
 #Successful introduction?
-binomial3 <- glmer(introducedY~AM*EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(df, !is.na(myco)), family="binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
-summary(binomial3) 
+binomial2 <- glmer(introducedY~AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(df, !is.na(myco)), family="binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
+summary(binomial2) 
 ```
 
     ## Generalized linear mixed model fit by maximum likelihood (Laplace
     ##   Approximation) [glmerMod]
     ##  Family: binomial  ( logit )
-    ## Formula: introducedY ~ AM * EM + scale(total_area_native) + annual + woody +  
+    ## Formula: introducedY ~ AM + EM + scale(total_area_native) + annual + woody +  
     ##     scale(abs_lat_native) + uses_num_uses + (1 | tribe_ncbi)
     ##    Data: subset(df, !is.na(myco))
     ## Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e+05))
     ## 
     ##      AIC      BIC   logLik deviance df.resid 
-    ##    602.6    647.8   -291.3    582.6      671 
+    ##    603.3    644.0   -292.6    585.3      672 
     ## 
     ## Scaled residuals: 
     ##     Min      1Q  Median      3Q     Max 
-    ## -3.5318 -0.4742 -0.1826  0.4179  4.4635 
+    ## -3.9070 -0.4710 -0.1986  0.4134  4.3047 
     ## 
     ## Random effects:
     ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.7624   0.8732  
+    ##  tribe_ncbi (Intercept) 0.8132   0.9018  
     ## Number of obs: 681, groups:  tribe_ncbi, 42
     ## 
     ## Fixed effects:
     ##                          Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)              -2.00235    0.59270  -3.378 0.000729 ***
-    ## AMY                      -0.62848    0.48737  -1.290 0.197213    
-    ## EMY                      -1.32063    0.76843  -1.719 0.085686 .  
-    ## scale(total_area_native)  0.22286    0.14494   1.538 0.124137    
-    ## annual                    0.58861    0.50983   1.155 0.248283    
-    ## woody                     0.87115    0.35776   2.435 0.014892 *  
-    ## scale(abs_lat_native)     0.20422    0.15065   1.356 0.175225    
-    ## uses_num_uses             0.95836    0.08766  10.933  < 2e-16 ***
-    ## AMY:EMY                   1.32107    0.81360   1.624 0.104434    
+    ## (Intercept)              -2.43853    0.53633  -4.547 5.45e-06 ***
+    ## AMY                      -0.15087    0.39090  -0.386   0.6995    
+    ## EMY                      -0.23451    0.37704  -0.622   0.5340    
+    ## scale(total_area_native)  0.22805    0.14482   1.575   0.1153    
+    ## annual                    0.62347    0.50930   1.224   0.2209    
+    ## woody                     0.84888    0.35763   2.374   0.0176 *  
+    ## scale(abs_lat_native)     0.18893    0.15071   1.254   0.2100    
+    ## uses_num_uses             0.95024    0.08683  10.944  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##             (Intr) AMY    EMY    scl(t__) annual woody  scl(b__) uss_n_
-    ## AMY         -0.760                                                     
-    ## EMY         -0.445  0.577                                              
-    ## scl(ttl_r_) -0.038  0.004  0.034                                       
-    ## annual      -0.270  0.089  0.041  0.162                                
-    ## woody       -0.483  0.000 -0.081  0.199    0.335                       
-    ## scl(bs_lt_) -0.192  0.015 -0.062  0.042    0.115  0.290                
-    ## uses_num_ss -0.254 -0.061 -0.068 -0.243    0.023  0.132  0.161         
-    ## AMY:EMY      0.426 -0.588 -0.876 -0.018   -0.038  0.045  0.066    0.087
+    ##             (Intr) AMY    EMY    scl(t__) annual woody  scl(b__)
+    ## AMY         -0.692                                              
+    ## EMY         -0.196  0.196                                       
+    ## scl(ttl_r_) -0.040  0.002  0.041                                
+    ## annual      -0.287  0.090  0.020  0.158                         
+    ## woody       -0.561  0.040 -0.083  0.197    0.338                
+    ## scl(bs_lt_) -0.237  0.067 -0.009  0.047    0.119  0.281         
+    ## uses_num_ss -0.324 -0.009  0.019 -0.237    0.033  0.127  0.149
 
 ``` r
-Anova(binomial3, type=3)
+Anova(binomial2, type=3)
 ```
 
     ## Analysis of Deviance Table (Type III Wald chisquare tests)
     ## 
     ## Response: introducedY
     ##                             Chisq Df Pr(>Chisq)    
-    ## (Intercept)               11.4133  1  0.0007292 ***
-    ## AM                         1.6629  1  0.1972130    
-    ## EM                         2.9536  1  0.0856863 .  
-    ## scale(total_area_native)   2.3643  1  0.1241370    
-    ## annual                     1.3329  1  0.2482834    
-    ## woody                      5.9292  1  0.0148920 *  
-    ## scale(abs_lat_native)      1.8377  1  0.1752254    
-    ## uses_num_uses            119.5342  1  < 2.2e-16 ***
-    ## AM:EM                      2.6365  1  0.1044340    
+    ## (Intercept)               20.6722  1   5.45e-06 ***
+    ## AM                         0.1490  1    0.69952    
+    ## EM                         0.3869  1    0.53396    
+    ## scale(total_area_native)   2.4796  1    0.11533    
+    ## annual                     1.4986  1    0.22088    
+    ## woody                      5.6340  1    0.01762 *  
+    ## scale(abs_lat_native)      1.5715  1    0.20999    
+    ## uses_num_uses            119.7642  1  < 2.2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(binomial3)
-```
-
-![](README_files/figure-gfm/Legume%20mixed%20models-15.png)<!-- -->
-
-``` r
+#plot(binomial2)
 #No interactions with human uses
 
 #Number of introduced ranges
-lmer4 <- lmer(log(num_introduced)~EM*uses_num_uses+AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
+lmer4 <- lmer(log(num_introduced)~EM+AM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
 summary(lmer4)
 ```
 
     ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: 
-    ## log(num_introduced) ~ EM * uses_num_uses + AM + EM + scale(total_area_native) +  
-    ##     annual + woody + scale(abs_lat_native) + uses_num_uses +  
-    ##     (1 | tribe_ncbi)
+    ## Formula: log(num_introduced) ~ EM + AM + scale(total_area_native) + annual +  
+    ##     woody + scale(abs_lat_native) + uses_num_uses + (1 | tribe_ncbi)
     ##    Data: subset(legume_range_df_introducedY, !is.na(myco))
     ## 
-    ## REML criterion at convergence: 922.4
+    ## REML criterion at convergence: 924.1
     ## 
     ## Scaled residuals: 
-    ##     Min      1Q  Median      3Q     Max 
-    ## -2.9031 -0.7388  0.1026  0.7042  2.2842 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -2.90924 -0.72723  0.07366  0.70586  2.20072 
     ## 
     ## Random effects:
     ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.08326  0.2885  
-    ##  Residual               0.94283  0.9710  
+    ##  tribe_ncbi (Intercept) 0.09388  0.3064  
+    ##  Residual               0.95090  0.9751  
     ## Number of obs: 320, groups:  tribe_ncbi, 34
     ## 
     ## Fixed effects:
     ##                          Estimate Std. Error t value
-    ## (Intercept)               0.91687    0.26669   3.438
-    ## EMY                      -0.49844    0.31699  -1.572
-    ## uses_num_uses             0.29792    0.02621  11.365
-    ## AMY                       0.17950    0.22309   0.805
-    ## scale(total_area_native) -0.17711    0.06294  -2.814
-    ## annual                    0.19125    0.23369   0.818
-    ## woody                    -0.35435    0.16215  -2.185
-    ## scale(abs_lat_native)    -0.11853    0.06920  -1.713
-    ## EMY:uses_num_uses         0.18406    0.08258   2.229
+    ## (Intercept)               0.81335    0.26543   3.064
+    ## EMY                       0.02013    0.21785   0.092
+    ## AMY                       0.22422    0.22333   1.004
+    ## scale(total_area_native) -0.17635    0.06340  -2.782
+    ## annual                    0.19330    0.23504   0.822
+    ## woody                    -0.35532    0.16371  -2.170
+    ## scale(abs_lat_native)    -0.11454    0.07005  -1.635
+    ## uses_num_uses             0.31428    0.02528  12.431
     ## 
     ## Correlation of Fixed Effects:
-    ##             (Intr) EMY    uss_n_ AMY    scl(t__) annual woody  scl(b__)
-    ## EMY         -0.194                                                     
-    ## uses_num_ss -0.250  0.217                                              
-    ## AMY         -0.763  0.143 -0.094                                       
-    ## scl(ttl_r_) -0.038  0.049 -0.232  0.024                                
-    ## annual      -0.263  0.015 -0.053  0.074  0.238                         
-    ## woody       -0.443 -0.107 -0.059  0.009  0.184    0.369                
-    ## scl(bs_lt_) -0.124 -0.083  0.084 -0.001  0.019    0.075  0.218         
-    ## EMY:ss_nm_s  0.166 -0.733 -0.283 -0.090 -0.009   -0.011  0.013 -0.043
+    ##             (Intr) EMY    AMY    scl(t__) annual woody  scl(b__)
+    ## EMY         -0.106                                              
+    ## AMY         -0.758  0.113                                       
+    ## scl(ttl_r_) -0.034  0.059  0.023                                
+    ## annual      -0.262  0.010  0.074  0.240                         
+    ## woody       -0.452 -0.140  0.009  0.178    0.365                
+    ## scl(bs_lt_) -0.116 -0.169 -0.004  0.020    0.078  0.211         
+    ## uses_num_ss -0.215  0.014 -0.125 -0.245   -0.059 -0.057  0.075
 
 ``` r
 Anova(lmer4, type=3)
@@ -1739,99 +1338,20 @@ Anova(lmer4, type=3)
     ## 
     ## Response: log(num_introduced)
     ##                             Chisq Df Pr(>Chisq)    
-    ## (Intercept)               11.8197  1  0.0005861 ***
-    ## EM                         2.4725  1  0.1158532    
-    ## uses_num_uses            129.1585  1  < 2.2e-16 ***
-    ## AM                         0.6474  1  0.4210603    
-    ## scale(total_area_native)   7.9175  1  0.0048958 ** 
-    ## annual                     0.6697  1  0.4131401    
-    ## woody                      4.7756  1  0.0288661 *  
-    ## scale(abs_lat_native)      2.9342  1  0.0867207 .  
-    ## EM:uses_num_uses           4.9671  1  0.0258338 *  
+    ## (Intercept)                9.3896  1   0.002182 ** 
+    ## EM                         0.0085  1   0.926391    
+    ## AM                         1.0080  1   0.315373    
+    ## scale(total_area_native)   7.7373  1   0.005409 ** 
+    ## annual                     0.6764  1   0.410837    
+    ## woody                      4.7109  1   0.029972 *  
+    ## scale(abs_lat_native)      2.6733  1   0.102041    
+    ## uses_num_uses            154.5180  1  < 2.2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(lmer4)
-```
+#plot(lmer4)
 
-![](README_files/figure-gfm/Legume%20mixed%20models-16.png)<!-- -->
-
-``` r
-#EM uses interaction seen
-#Check how many species have EM and their human uses hist
-
-#Introduced area (if introduced at all)
-lmer5 <- lmer(log(total_area_introduced/1e+6)~AM+EM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(legume_range_df_introducedY, !is.na(myco)))
-summary(lmer5)
-```
-
-    ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: 
-    ## log(total_area_introduced/1e+06) ~ AM + EM + scale(total_area_native) +  
-    ##     annual + woody + scale(abs_lat_native) + uses_num_uses +  
-    ##     (1 | tribe_ncbi)
-    ##    Data: subset(legume_range_df_introducedY, !is.na(myco))
-    ## 
-    ## REML criterion at convergence: 1467.6
-    ## 
-    ## Scaled residuals: 
-    ##     Min      1Q  Median      3Q     Max 
-    ## -5.0716 -0.4117  0.2491  0.6195  1.5620 
-    ## 
-    ## Random effects:
-    ##  Groups     Name        Variance Std.Dev.
-    ##  tribe_ncbi (Intercept) 0.3365   0.5801  
-    ##  Residual               5.5137   2.3481  
-    ## Number of obs: 320, groups:  tribe_ncbi, 34
-    ## 
-    ## Fixed effects:
-    ##                          Estimate Std. Error t value
-    ## (Intercept)              12.37901    0.62669  19.753
-    ## AMY                       1.04477    0.53585   1.950
-    ## EMY                       0.08356    0.51122   0.163
-    ## scale(total_area_native) -0.49868    0.15079  -3.307
-    ## annual                    0.99582    0.56230   1.771
-    ## woody                    -0.58346    0.38550  -1.514
-    ## scale(abs_lat_native)     0.43749    0.16255   2.691
-    ## uses_num_uses             0.49674    0.06057   8.201
-    ## 
-    ## Correlation of Fixed Effects:
-    ##             (Intr) AMY    EMY    scl(t__) annual woody  scl(b__)
-    ## AMY         -0.772                                              
-    ## EMY         -0.110  0.117                                       
-    ## scl(ttl_r_) -0.047  0.024  0.071                                
-    ## annual      -0.274  0.074  0.015  0.233                         
-    ## woody       -0.449  0.012 -0.155  0.202    0.384                
-    ## scl(bs_lt_) -0.126 -0.006 -0.168  0.013    0.064  0.244         
-    ## uses_num_ss -0.213 -0.125  0.022 -0.245   -0.057 -0.060  0.077
-
-``` r
-Anova(lmer5, type=3, test="F")
-```
-
-    ## Analysis of Deviance Table (Type III Wald F tests with Kenward-Roger df)
-    ## 
-    ## Response: log(total_area_introduced/1e+06)
-    ##                                 F Df Df.res    Pr(>F)    
-    ## (Intercept)              384.9964  1 266.73 < 2.2e-16 ***
-    ## AM                         3.7822  1 305.70  0.052718 .  
-    ## EM                         0.0253  1 194.01  0.873909    
-    ## scale(total_area_native)  10.7231  1 300.68  0.001182 ** 
-    ## annual                     3.1016  1 311.77  0.079198 .  
-    ## woody                      2.2197  1 235.25  0.137600    
-    ## scale(abs_lat_native)      6.8957  1 136.31  0.009628 ** 
-    ## uses_num_uses             66.7292  1 309.85 7.992e-15 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-plot(lmer5)
-```
-
-![](README_files/figure-gfm/Legume%20mixed%20models-17.png)<!-- -->
-
-``` r
 #Native range size
 lmer6 <- lmer(log(total_area_native/1e+6)~AM+EM+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi), data=subset(df, !is.na(myco)))
 summary(lmer6)
@@ -1896,7 +1416,7 @@ Anova(lmer6, type=3, test="F")
 plot(lmer6)
 ```
 
-![](README_files/figure-gfm/Legume%20mixed%20models-18.png)<!-- -->
+![](README_files/figure-gfm/Legume%20mixed%20models-2.png)<!-- -->
 
 #### Multiple mutualisms
 
