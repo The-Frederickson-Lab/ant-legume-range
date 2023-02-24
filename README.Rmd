@@ -279,7 +279,7 @@ write.csv(legume_range_df, file="legume_range_traits.csv", row.names = FALSE)
 ```
 
 ### Summarize legume dataset
-We are finally finished cleaning the dataset, and now simply have to summarize, visualize, and model.
+We are finished cleaning the dataset, and now simply have to summarize, visualize, and model.
 
 First, let's summarize how many species we have in each category. How many legumes with vs. without EFNs do we have range size data for, and how many introduced ranges have they been introduced to, on average? 
 
@@ -330,8 +330,9 @@ kable(summary.myco2)
 ```
 
 ### Make figures
+Let's make the figures showing how mutualistic trait affect legume native and introduced range sizes. 
 
-```{r Legume plots for number of introduced ranges, warning=FALSE, message=FALSE, fig.width=8, fig.height=6, dpi=300}
+```{r Legume plots for number of introduced ranges, warning=FALSE, message=FALSE, fig.width=12, fig.height=8, dpi=300}
 #Set sizes and widths for all figures
 pt_size <- 3
 y_limits <- c(-0.5, 15)
@@ -431,15 +432,15 @@ y_text <- 0
 
 summary.efn.dom.native <- ungroup(df %>% group_by(EFN, Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
-p_EFN_dom_native <- ggplot(data=summary.efn.dom.native, aes(x=EFN, y=mean_native, color=Domatia))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native, color=Domatia), width=er_width)+ geom_line(aes(group=Domatia), linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("EFNs")+geom_text(aes(x=c(0.8,1.2,1.8,2.2), y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+scale_color_grey(labels=c("No", "Yes"))+theme(legend.position = c(0.1, 0.8))+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")+annotate("text", x = 1.5, y = 3.9e+12, label = "***")
+p_EFN_dom_native <- ggplot(data=summary.efn.dom.native, aes(x=EFN, y=mean_native, color=Domatia))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native, color=Domatia), width=er_width)+ geom_line(aes(group=Domatia), linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("EFNs")+geom_text(aes(x=c(0.8,1.2,1.8,2.2), y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+scale_color_grey(labels=c("No", "Yes"))+theme(legend.position = c(0.1, 0.8))+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")+annotate("text", x = 1.5, y = 3.9e+12, label = "**")
 
 summary.dom.native <- ungroup(df %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
-p_dom_native <- ggplot(data=summary.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)
+p_dom_native <- ggplot(data=summary.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
 
 summary.fix.native <- ungroup(df %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 
-p_fix_native <- ggplot(data=summary.fix.native, aes(x=fixer, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "*")
+p_fix_native <- ggplot(data=summary.fix.native, aes(x=fixer, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
 
 summary.AM.native <- ungroup(df %>% group_by(AM) %>% dplyr::summarize(n=n(), mean_native = mean(total_area_native, na.rm=TRUE), sd_native = sd(total_area_native, na.rm=TRUE), se_native = sd_native/sqrt(n)))
 kable(summary.AM.native)
@@ -451,145 +452,15 @@ kable(summary.EM.native)
 
 p_EM_native <- ggplot(data=subset(summary.EM.native, !is.na(EM)), aes(x=EM, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=EM, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("EM")+geom_text(aes(x=EM, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 7.1e+12, label = "ns")
 
-fig2 <- plot_grid(p_EFN_dom_native, p_fix_native, p_AM_native, p_EM_native, nrow=1, labels="AUTO", rel_widths = c(1.8, 1, 1, 1))
+fig2 <- plot_grid(p_EFN_dom_native, p_fix_native, p_AM_native, p_EM_native, nrow=2, labels="AUTO", rel_widths = c(1, 1, 1, 1))
 fig2
-save_plot("Figure2.pdf", fig2, base_height = 4, base_width = 12)
+save_plot("Figure2.pdf", fig2, base_height = 8, base_width = 8)
 ```
 
 ### Statistical models
 
-#### Preparing dataset for pgls analysis
-
-```{r PGLS, warning=FALSE, message=FALSE}
-df$Phy2 <- paste0(as.character(word(legume_range_df$Phy, 1, 1)), "_", as.character(word(legume_range_df$Phy, 2, 2)))
-
-zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
-phyint <- intersect(zanne$tip.label, df$Phy2)  
-phydiff <- setdiff(zanne$tip.label, df$Phy2)
-pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
-
-range_pgls <- df[df$Phy2 %in% phyint, ]
-#colnames(range_pgls)
-#which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
-range_pgls <-range_pgls[,-c(23:30, 32, 34)] #Remove some unneeded columns
-range_pgls <- range_pgls[complete.cases(range_pgls), ] #removing NA elements
-```
-
-#### PGLS models for EFN, domatia, and rhizobia
-
-The problem with PGLS models is that we lose a lot of trait data for species not in the phylogeny. We either need a better phylogeny or a non-phylogenetic model. 
-
-```{r Legume pgls models for EFN domatia and rhizobia, warning=FALSE, message=FALSE}
-#PGLS of number of introduced ranges as response variable with EFNs, domatia, and nodules, 
-#interaction and other covariates
-#Interactions that were not significant were removed
-
-pgls1 <- gls(log(num_introduced + 1) ~  EFN+fixer+Domatia+total_area_native+abs_lat_native+uses_num_uses+woody+annual, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method="ML", data = range_pgls) 
-summary(pgls1)
-
-#Diagnostic plots
-#plot(pgls1$residuals, pgls1$fitted)
-#qqnorm(pgls1$residuals)
-#qqline(pgls1$residuals)
-
-#Repeating for native area
-#PGLS with both EFN and domatia presence and fixer, interaction and covariates
-pgls2 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
-summary(pgls2)
-
-#Diagnostic plots
-#plot(pgls2$residuals, pgls2$fitted)
-#qqnorm(pgls2$residuals)
-#qqline(pgls2$residuals)
-```
-
-#### PGLS models for mycorrhizae
-
-```{r Legume pgls models for mycorrhizae, warning=FALSE, message=FALSE }
-range_myco <- subset(df, !is.na(myco))
-range_myco$Phy2 <- as.character(range_myco$Phy2)
-phyint1 <- intersect(zanne$tip.label, range_myco$Phy2)  
-phydiff1 <- setdiff(zanne$tip.label, range_myco$Phy2)
-pruned.myco.pgls <- drop.tip(zanne, phydiff1) #dropping tips not in the dataset
-
-range_myco_pgls <- range_myco[range_myco$Phy2 %in% phyint1, ]
-#which(colSums(is.na(range_myco_pgls))>0) #Check which columns have NAs
-range_myco_pgls <-range_myco_pgls[,-c(32)] #Remove some unneeded columns
-range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ] #removing NA elements
-
-#PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-pgls3 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
-summary(pgls3)
-
-#Repeating for native area
-pgls4 <- gls((total_area_native)^(1/4) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
-summary(pgls4)
-```
-
-#### Pagel correlations between traits
-
-```{r Legume Pagel, warning=FALSE, message=FALSE, eval=FALSE}
-#Pagel correlation between traits
-range_pagel <- df[df$Phy2 %in% phyint, ]
-range_pagel <-range_pagel[,-c(23:28, 32, 34)] #Remove some unneeded columns
-
-range_pagel <- range_pagel[!duplicated(range_pagel$Phy2), ] #Removing duplicated data
-range_pagel <- range_pagel[complete.cases(range_pagel), ] 
-
-names <- pruned.tree.pgls$tip.label 
-names <- names[names %in% range_pagel$Phy2]
-
-traits <- data.frame(range_pagel$Phy2, range_pagel$AM, range_pagel$EM, range_pagel$EFN, range_pagel$Domatia, range_pagel$fixer)
-colnames(traits) <- c("Phy", "AM", "EM", "EFN", "Domatia", "Fixer")
-traits <- arrange(traits, names)
-
-#[match(as.character(pruned.tree.pgls$tip.label), traits$Phy),]
-
-rownames(traits) <- traits[,1]
-traits[,1] <- NULL
-head(traits)
-
-AM<-setNames(traits$AM,rownames(traits))
-EM<-setNames(traits$EM,rownames(traits))
-EFN<-setNames(traits$EFN,rownames(traits))
-Domatia<-setNames(traits$Domatia,rownames(traits))
-fixer<-setNames(traits$Fixer,rownames(traits))
-
-#Subsetting phylogeny
-phyint2 <- intersect(pruned.tree.pgls$tip.label, range_pagel$Phy2)  
-phydiff2 <- setdiff(pruned.tree.pgls$tip.label, range_pagel$Phy2)
-pruned.pagel <- drop.tip(pruned.tree.pgls, phydiff2) #dropping tips not in the dataset
-
-fit.amem <- fitPagel(pruned.pagel, AM, EM)
-amem <- plot(fit.amem,lwd.by.rate=TRUE)
-
-fit.amefn <- fitPagel(pruned.pagel, AM, EFN) #nonsig
-
-fit.amdom <- fitPagel(pruned.pagel, AM, Domatia) #signif.
-amdom <- plot(fit.amdom,lwd.by.rate=TRUE)
-
-fit.amfix <- fitPagel(pruned.pagel, AM, fixer) #pval 0.009
-amfix <- plot(fit.amfix,lwd.by.rate=TRUE)
-
-fit.emefn <- fitPagel(pruned.pagel, EM, EFN) #nonsig
-
-fit.emdom <- fitPagel(pruned.pagel, EM, Domatia)
-emdom <- plot(fit.emdom,lwd.by.rate=TRUE)
-
-fit.emfix <- fitPagel(pruned.pagel, EM, fixer) #pval 0.0004
-emfix <- plot(fit.emfix, lwd.by.rate=TRUE)
-
-fit.efndom <- fitPagel(pruned.pagel, EFN, Domatia)
-efndom <- plot(fit.efndom, lwd.by.rate=TRUE)
-
-fit.efnfix <- fitPagel(pruned.pagel, EFN, fixer) #nonsig
-
-fit.domfix <- fitPagel(pruned.pagel, Domatia, fixer) #marginally sig
-domfix <- plot(fit.domfix, lwd.by.rate=TRUE)
-
-```
 #### Mixed models
-Another possible approach is to use mixed models with legume tribe as a random effect to account for the non-independence of species in a tribe. The response variables (number of introduced ranges and total introduced area) are very non-normal so we fit two models: a binomial GLMM modelling whether or not a legume species is introduced, and linear mixed models of the number of introduced ranges for introduced species only. 
+One approach is to use mixed models with legume tribe as a random effect to account for the non-independence of species in a tribe. The response variable (number of introduced ranges) is very non-normal so we fit two models: a binomial GLMM modelling whether or not a legume species is introduced, and linear mixed models of the number of introduced ranges for introduced species only. 
 
 ```{r Legume mixed models, warning=FALSE, message=FALSE}
 #Fit binomial model for whether or not a legume species has been introduced
@@ -655,6 +526,74 @@ Anova(lmer5, type=3)
 #plot(lmer5)
 ```
 
+#### Preparing dataset for pgls analysis
+
+```{r PGLS, warning=FALSE, message=FALSE}
+df$Phy2 <- paste0(as.character(word(legume_range_df$Phy, 1, 1)), "_", as.character(word(legume_range_df$Phy, 2, 2)))
+
+zanne <- read.tree("Vascular_Plants_rooted.dated.tre") #reading in Zanne et al. 2014 plant phylogeny
+phyint <- intersect(zanne$tip.label, df$Phy2)  
+phydiff <- setdiff(zanne$tip.label, df$Phy2)
+pruned.tree.pgls <- drop.tip(zanne, phydiff) #dropping tips not in the dataset
+
+range_pgls <- df[df$Phy2 %in% phyint, ]
+#colnames(range_pgls)
+#which(colSums(is.na(range_pgls))>0) #Check which columns have NAs
+range_pgls <-range_pgls[,-c(23:30, 32, 34)] #Remove some unneeded columns
+range_pgls <- range_pgls[complete.cases(range_pgls), ] #removing NA elements
+```
+
+#### PGLS models for EFN, domatia, and rhizobia
+
+The problem with PGLS models is that we lose a lot of trait data for species not in the phylogeny. We either need a better phylogeny or a non-phylogenetic model. 
+
+```{r Legume pgls models for EFN domatia and rhizobia, warning=FALSE, message=FALSE}
+#PGLS of number of introduced ranges as response variable with EFNs, domatia, and nodules, 
+#interaction and other covariates
+#Interactions that were not significant were removed
+
+pgls1 <- gls(log(num_introduced + 1) ~ EFN+fixer+Domatia+total_area_native+abs_lat_native+woody+uses_num_uses+annual, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method="ML", data = range_pgls) 
+summary(pgls1)
+
+#Diagnostic plots
+#plot(pgls1$residuals, pgls1$fitted)
+#qqnorm(pgls1$residuals)
+#qqline(pgls1$residuals)
+
+#Repeating for native area
+#PGLS with both EFN and domatia presence and fixer, interaction and covariates
+pgls2 <- gls(log((total_area_native/1e+6) + 1) ~ EFN*Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
+summary(pgls2)
+
+#Diagnostic plots
+#plot(pgls2$residuals, pgls2$fitted)
+#qqnorm(pgls2$residuals)
+#qqline(pgls2$residuals)
+```
+
+#### PGLS models for mycorrhizae
+
+```{r Legume pgls models for mycorrhizae, warning=FALSE, message=FALSE }
+range_myco <- subset(df, !is.na(myco))
+range_myco$Phy2 <- as.character(range_myco$Phy2)
+phyint1 <- intersect(zanne$tip.label, range_myco$Phy2)  
+phydiff1 <- setdiff(zanne$tip.label, range_myco$Phy2)
+pruned.myco.pgls <- drop.tip(zanne, phydiff1) #dropping tips not in the dataset
+
+range_myco_pgls <- range_myco[range_myco$Phy2 %in% phyint1, ]
+#which(colSums(is.na(range_myco_pgls))>0) #Check which columns have NAs
+range_myco_pgls <-range_myco_pgls[,-c(32)] #Remove some unneeded columns
+range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ] #removing NA elements
+
+#PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
+pgls3 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
+summary(pgls3)
+
+#Repeating for native area
+pgls4 <- gls((total_area_native)^(1/4) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses, correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
+summary(pgls4)
+```
+
 #### Multiple mutualisms
 
 We can also look at the effects of multiple mutualisms. 
@@ -696,6 +635,70 @@ save_plot("Figure3.pdf", fig3, base_height = 8, base_width=5)
 
 sum.nmum <- subset(df, !is.na(num_mutualisms)) %>% group_by(AM, EM, Domatia, EFN, fixer, num_mutualisms) %>% dplyr::summarize(n=n())
 kable(sum.nmum)
+```
+
+#### Pagel correlations between traits
+For the moment, I added eval=FALSE to the chunk so that this doesn't run everytime I render the markdown document. But this section needs finalizing.
+
+```{r Legume Pagel, warning=FALSE, message=FALSE, eval=FALSE}
+#Pagel correlation between traits
+range_pagel <- df[df$Phy2 %in% phyint, ]
+range_pagel <-range_pagel[,-c(23:28, 32, 34)] #Remove some unneeded columns
+
+range_pagel <- range_pagel[!duplicated(range_pagel$Phy2), ] #Removing duplicated data
+range_pagel <- range_pagel[complete.cases(range_pagel), ] 
+
+names <- pruned.tree.pgls$tip.label 
+names <- names[names %in% range_pagel$Phy2]
+
+traits <- data.frame(range_pagel$Phy2, range_pagel$AM, range_pagel$EM, range_pagel$EFN, range_pagel$Domatia, range_pagel$fixer)
+colnames(traits) <- c("Phy", "AM", "EM", "EFN", "Domatia", "Fixer")
+traits <- arrange(traits, names)
+
+#[match(as.character(pruned.tree.pgls$tip.label), traits$Phy),]
+
+rownames(traits) <- traits[,1]
+traits[,1] <- NULL
+head(traits)
+
+AM<-setNames(traits$AM,rownames(traits))
+EM<-setNames(traits$EM,rownames(traits))
+EFN<-setNames(traits$EFN,rownames(traits))
+Domatia<-setNames(traits$Domatia,rownames(traits))
+fixer<-setNames(traits$Fixer,rownames(traits))
+
+#Subsetting phylogeny
+phyint2 <- intersect(pruned.tree.pgls$tip.label, range_pagel$Phy2)  
+phydiff2 <- setdiff(pruned.tree.pgls$tip.label, range_pagel$Phy2)
+pruned.pagel <- drop.tip(pruned.tree.pgls, phydiff2) #dropping tips not in the dataset
+
+fit.amem <- fitPagel(pruned.pagel, AM, EM)
+amem <- plot(fit.amem,lwd.by.rate=TRUE)
+
+fit.amefn <- fitPagel(pruned.pagel, AM, EFN) #nonsig
+
+fit.amdom <- fitPagel(pruned.pagel, AM, Domatia) #signif.
+amdom <- plot(fit.amdom,lwd.by.rate=TRUE)
+
+fit.amfix <- fitPagel(pruned.pagel, AM, fixer) #pval 0.009
+amfix <- plot(fit.amfix,lwd.by.rate=TRUE)
+
+fit.emefn <- fitPagel(pruned.pagel, EM, EFN) #nonsig
+
+fit.emdom <- fitPagel(pruned.pagel, EM, Domatia)
+emdom <- plot(fit.emdom,lwd.by.rate=TRUE)
+
+fit.emfix <- fitPagel(pruned.pagel, EM, fixer) #pval 0.0004
+emfix <- plot(fit.emfix, lwd.by.rate=TRUE)
+
+fit.efndom <- fitPagel(pruned.pagel, EFN, Domatia)
+efndom <- plot(fit.efndom, lwd.by.rate=TRUE)
+
+fit.efnfix <- fitPagel(pruned.pagel, EFN, fixer) #nonsig
+
+fit.domfix <- fitPagel(pruned.pagel, Domatia, fixer) #marginally sig
+domfix <- plot(fit.domfix, lwd.by.rate=TRUE)
+
 ```
 
 ## Ant dataset
@@ -857,6 +860,29 @@ save_plot("Figure5.pdf", fig5, base_height = 4, base_width = 12)
 save_plot("Figure5.png", fig5, base_height = 4, base_width = 12)
 ```
 
+### Mixed models
+
+```{r ant glmms, warning=FALSE, message=FALSE}
+#Introduction success
+binomial5 <- lme4::glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=area, family="binomial")
+summary(binomial5)
+car::Anova(binomial5, type=3)
+#plot(binomial5)
+
+#Total non-contiguous ranges
+lmer7 <- lmer(log(n_introduced_ranges)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
+summary(lmer7)
+Anova(lmer7, type=3)
+#plot(lmer7)
+
+#Native range area
+lmer10 <- lmer(log(total.area.native)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+(1|tribe), data=area)
+summary(lmer10)
+Anova(lmer10, type=3)
+#plot(lmer10)
+```
+
+
 ### Multiple mutualisms
 
 ```{r}
@@ -893,28 +919,6 @@ p_num_mm <- ggplot(data=summary.ant.mnum1, aes(x=num.mm, y=mean_area_introduced)
 fig6 <- plot_grid(inset_p_antmm, p_num_mm, ncol=1, labels="AUTO")
 fig6
 save_plot("Figure6.pdf", fig6, base_height = 8, base_width=5)
-```
-
-### Mixed models
-
-```{r ant glmms, warning=FALSE, message=FALSE}
-#Introduction success
-binomial5 <- lme4::glmer(introducedY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=area, family="binomial")
-summary(binomial5)
-car::Anova(binomial5, type=3)
-#plot(binomial5)
-
-#Total non-contiguous ranges
-lmer7 <- lmer(log(n_introduced_ranges)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
-summary(lmer7)
-Anova(lmer7, type=3)
-#plot(lmer7)
-
-#Native range area
-lmer10 <- lmer(log(total.area.native)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+(1|tribe), data=area)
-summary(lmer10)
-Anova(lmer10, type=3)
-plot(lmer10)
 ```
 
 ### By introduction mode
@@ -958,7 +962,7 @@ p_exotic <- plot_grid(p_exoticefn, p_exoticdom, p_exoticseed, nrow=1, labels=c("
 binomial7 <- glmer(ExoticY~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial7)
 Anova(binomial7, type=3)
-plot(binomial7)
+#plot(binomial7)
 
 #Indoors?
 area$IndoorY <- as.factor(area$IndoorY)
@@ -998,7 +1002,7 @@ p_indoor <- plot_grid(p_indoorefn, p_indoordom, p_indoorseed, nrow=1, labels=c("
 binomial8 <- glmer(IndoorY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial8)
 Anova(binomial8, type=3)
-plot(binomial8)
+#plot(binomial8)
 
 #Intercepted
 area$InterceptedY <- as.factor(area$InterceptedY)
@@ -1039,7 +1043,7 @@ p_intercepted <- plot_grid(p_interceptedefn, p_intercepteddom, p_interceptedseed
 binomial9 <- glmer(InterceptedY~EFN+Seed_Dispersal+Domatia+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1), family="binomial")
 summary(binomial9)
 Anova(binomial9, type=3)
-plot(binomial9)
+#plot(binomial9)
 
 fig7 <- plot_grid(p_intercepted, p_indoor, p_exotic, nrow=3)
 fig7
@@ -1087,23 +1091,23 @@ a2 <- gls(log(total.area.introduced+1) ~  EFN + Domatia + Seed_Dispersal +  tota
 summary(a2)
 
 ## Diagnostic plots
-plot(a2$residuals, a2$fitted)
-qqnorm(a2$residuals)
-qqline(a2$residuals)
+#plot(a2$residuals, a2$fitted)
+#qqnorm(a2$residuals)
+#qqline(a2$residuals)
 
 #Non-contiguous range
 a3 <- gls(log(n_introduced_ranges+1) ~  EFN + Domatia + Seed_Dispersal +  total.area.native + abs_lat_native,  correlation = corPagel(1, phy = pruned_ant_tree, form = ~Phy), method = "ML", data = area_phy)  
 summary(a3)
 
 ## Diagnostic plots
-plot(a3$residuals, a3$fitted)
-qqnorm(a3$residuals)
-qqline(a3$residuals)
+#plot(a3$residuals, a3$fitted)
+#qqnorm(a3$residuals)
+#qqline(a3$residuals)
 
 ```
 #### Pagel correlations between traits
 
-```{r ant Pagel, warning=FALSE, message=FALSE}
+```{r ant Pagel, warning=FALSE, message=FALSE, eval=FALSE}
 
 area_pagel <- area[area$Phy %in% area$Phy, c("Phy", "EFN", "Domatia", "Seed_Dispersal")]
 area_pagel <- area_pagel[complete.cases(area_pagel), ]
