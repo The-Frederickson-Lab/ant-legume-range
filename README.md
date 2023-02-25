@@ -2701,3 +2701,271 @@ fit.adomsd <- fitPagel(ant_tree_pagel, Domatia, sd) #not sig
 fit.asdefn <- fitPagel(ant_tree_pagel, sd, EFN) #pval 0.04
 asdefn <- plot(fit.asdefn,lwd.by.rate=TRUE)
 ```
+
+### Latitudinal distribution
+
+``` r
+#devtools::install_github("katiejolly/nationalparkcolors")
+library(nationalparkcolors)
+pal="Saguaro"
+color_EFN = park_palette(pal)[1]
+color_dom = park_palette(pal)[2]
+color_seed = park_palette(pal)[3]
+color_fixer = park_palette(pal)[4]
+color_AM = park_palette(pal)[5]
+color_EM = park_palette(pal)[6]
+x_limit = c(0, 90)
+y_limit = c(-0.1, 0.1)
+a = 0.5
+x_label = 0.05
+y_label = 75
+
+#Models
+lmer_lat_ant <- lmer(abs_lat_native~EFN+Domatia+Seed_Dispersal+introducedY+(1|tribe), data=area)
+summary(lmer_lat_ant)
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: abs_lat_native ~ EFN + Domatia + Seed_Dispersal + introducedY +  
+    ##     (1 | tribe)
+    ##    Data: area
+    ## 
+    ## REML criterion at convergence: 22487.5
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -2.9814 -0.7382 -0.0285  0.7291  3.2069 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  tribe    (Intercept)  55.62    7.458  
+    ##  Residual             148.66   12.193  
+    ## Number of obs: 2855, groups:  tribe, 56
+    ## 
+    ## Fixed effects:
+    ##                Estimate Std. Error t value
+    ## (Intercept)     18.4643     1.1384  16.220
+    ## EFN             -2.6842     1.2739  -2.107
+    ## Domatia        -10.6243     1.9629  -5.413
+    ## Seed_Dispersal   4.9664     0.8583   5.786
+    ## introducedY     -2.3007     0.7547  -3.048
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             (Intr) EFN    Domati Sd_Dsp
+    ## EFN         -0.041                     
+    ## Domatia     -0.037 -0.108              
+    ## Seed_Dsprsl -0.023 -0.162  0.011       
+    ## introducedY -0.046 -0.130  0.011 -0.220
+
+``` r
+Anova(lmer_lat_ant, type=3)
+```
+
+    ## Analysis of Deviance Table (Type III Wald chisquare tests)
+    ## 
+    ## Response: abs_lat_native
+    ##                   Chisq Df Pr(>Chisq)    
+    ## (Intercept)    263.0864  1  < 2.2e-16 ***
+    ## EFN              4.4399  1   0.035108 *  
+    ## Domatia         29.2958  1  6.213e-08 ***
+    ## Seed_Dispersal  33.4818  1  7.193e-09 ***
+    ## introducedY      9.2926  1   0.002301 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+lmer_lat_plant <- lmer(abs_lat_native~EFN+Domatia+fixer+introducedY+(1|tribe), data=df)
+summary(lmer_lat_plant)
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: abs_lat_native ~ EFN + Domatia + fixer + introducedY + (1 | tribe)
+    ##    Data: df
+    ## 
+    ## REML criterion at convergence: 25661.9
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -3.9189 -0.6468  0.0722  0.6461  4.6297 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  tribe    (Intercept) 108.53   10.418  
+    ##  Residual              80.01    8.945  
+    ## Number of obs: 3534, groups:  tribe, 39
+    ## 
+    ## Fixed effects:
+    ##             Estimate Std. Error t value
+    ## (Intercept) 22.57912    1.85043  12.202
+    ## EFN1        -1.36547    0.67106  -2.035
+    ## Domatia1    -9.11191    2.00923  -4.535
+    ## fixer1       0.61447    0.82125   0.748
+    ## introducedY -0.03921    0.38083  -0.103
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             (Intr) EFN1   Domat1 fixer1
+    ## EFN1        -0.013                     
+    ## Domatia1     0.026 -0.015              
+    ## fixer1      -0.376  0.009 -0.081       
+    ## introducedY -0.043 -0.193  0.000  0.014
+
+``` r
+Anova(lmer_lat_plant, type=3)
+```
+
+    ## Analysis of Deviance Table (Type III Wald chisquare tests)
+    ## 
+    ## Response: abs_lat_native
+    ##                Chisq Df Pr(>Chisq)    
+    ## (Intercept) 148.8916  1  < 2.2e-16 ***
+    ## EFN           4.1404  1    0.04187 *  
+    ## Domatia      20.5665  1  5.759e-06 ***
+    ## fixer         0.5598  1    0.45434    
+    ## introducedY   0.0106  1    0.91801    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+#Figures
+  
+p_lat_EFN <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & EFN == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_EFN, color=color_EFN, alpha=a)+
+  geom_density(data=subset(df, introducedY == 1 & EFN == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_EFN, color=color_EFN, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & EFN == 1), aes(y=median(abs_lat_native, na.rm=TRUE), yend=median(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_EFN, linetype="dashed")+
+  geom_segment(data=subset(df, introducedY == 1 & EFN == 1), aes(y=median(abs_lat_native, na.rm=TRUE), yend=median(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_EFN, linetype="dashed")+
+  annotate("text", x=x_label, y=y_label, label="EFN-visiting ants")+
+  annotate("text",x=-x_label, y=y_label, label="EFN-bearing legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_EFN
+```
+
+    ## Warning: Removed 2 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 5 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-1.png)<!-- -->
+
+``` r
+p_lat_dom <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & Domatia == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_dom, color=color_dom, alpha=a)+
+  geom_density(data=subset(df, introducedY == 1 & Domatia == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_dom, color=color_dom, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & Domatia == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_dom, linetype="dashed")+
+  geom_segment(data=subset(df, introducedY == 1 & Domatia == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_dom, linetype="dashed")+
+  annotate("text", y=y_label, x=x_label, label="Domatia-nesting ants")+
+  annotate("text", y=y_label, x=-x_label, label="Domatia-bearing legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_dom
+```
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-2.png)<!-- -->
+
+``` r
+p_lat_seed <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & Seed_Dispersal == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_seed, color=color_seed, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & Seed_Dispersal == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_seed, linetype="dashed")+
+  annotate("text", y=y_label, x=x_label, label="Seed-dispersing ants")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_seed
+```
+
+    ## Warning: Removed 4 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-3.png)<!-- -->
+
+``` r
+p_lat_fixer <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & fixer == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_fixer, color=color_fixer, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & fixer == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_fixer, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="Nodulating legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_fixer
+```
+
+    ## Warning: Removed 28 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-4.png)<!-- -->
+
+``` r
+p_lat_AM <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & AM == "Y"), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_AM, color=color_AM, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & AM == "Y"), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_AM, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="AM legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_AM
+```
+
+    ## Warning: Removed 10 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-5.png)<!-- -->
+
+``` r
+p_lat_EM <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & EM == "Y"), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_EM, color=color_EM, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & EM == "Y"), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_EM, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="EM legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_EM
+```
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_density()`).
+
+![](README_files/figure-gfm/Latitude-6.png)<!-- -->
+
+``` r
+p_lat <- plot_grid(p_lat_EFN, p_lat_dom, p_lat_seed, p_lat_fixer, p_lat_AM, p_lat_EM, nrow=6, labels="AUTO")
+```
+
+    ## Warning: Removed 2 rows containing non-finite values (`stat_density()`).
+    ## Removed 5 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 4 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 28 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 10 rows containing non-finite values (`stat_density()`).
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_density()`).
+
+``` r
+p_lat
+```
+
+![](README_files/figure-gfm/Latitude-7.png)<!-- -->
+
+``` r
+save_plot("Latitude Figure.pdf", p_lat, base_height = 12, base_width=6)
+```

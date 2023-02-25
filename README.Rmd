@@ -1145,3 +1145,115 @@ asdefn <- plot(fit.asdefn,lwd.by.rate=TRUE)
 
 
 ```
+
+### Latitudinal distribution
+
+```{r Latitude}
+#devtools::install_github("katiejolly/nationalparkcolors")
+library(nationalparkcolors)
+pal="Saguaro"
+color_EFN = park_palette(pal)[1]
+color_dom = park_palette(pal)[2]
+color_seed = park_palette(pal)[3]
+color_fixer = park_palette(pal)[4]
+color_AM = park_palette(pal)[5]
+color_EM = park_palette(pal)[6]
+x_limit = c(0, 90)
+y_limit = c(-0.1, 0.1)
+a = 0.5
+x_label = 0.05
+y_label = 75
+
+#Models
+lmer_lat_ant <- lmer(abs_lat_native~EFN+Domatia+Seed_Dispersal+introducedY+(1|tribe), data=area)
+summary(lmer_lat_ant)
+Anova(lmer_lat_ant, type=3)
+
+lmer_lat_plant <- lmer(abs_lat_native~EFN+Domatia+fixer+introducedY+(1|tribe), data=df)
+summary(lmer_lat_plant)
+Anova(lmer_lat_plant, type=3)
+
+#Figures
+  
+p_lat_EFN <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & EFN == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_EFN, color=color_EFN, alpha=a)+
+  geom_density(data=subset(df, introducedY == 1 & EFN == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_EFN, color=color_EFN, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & EFN == 1), aes(y=median(abs_lat_native, na.rm=TRUE), yend=median(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_EFN, linetype="dashed")+
+  geom_segment(data=subset(df, introducedY == 1 & EFN == 1), aes(y=median(abs_lat_native, na.rm=TRUE), yend=median(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_EFN, linetype="dashed")+
+  annotate("text", x=x_label, y=y_label, label="EFN-visiting ants")+
+  annotate("text",x=-x_label, y=y_label, label="EFN-bearing legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_EFN
+
+p_lat_dom <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & Domatia == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_dom, color=color_dom, alpha=a)+
+  geom_density(data=subset(df, introducedY == 1 & Domatia == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_dom, color=color_dom, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & Domatia == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_dom, linetype="dashed")+
+  geom_segment(data=subset(df, introducedY == 1 & Domatia == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_dom, linetype="dashed")+
+  annotate("text", y=y_label, x=x_label, label="Domatia-nesting ants")+
+  annotate("text", y=y_label, x=-x_label, label="Domatia-bearing legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_dom
+
+p_lat_seed <- ggplot()+
+  geom_density(data=subset(area, introducedY == 1 & Seed_Dispersal == 1), aes(y=abs_lat_native,x=after_stat(density)), fill=color_seed, color=color_seed, alpha=a)+
+  geom_segment(data=subset(area, introducedY == 1 & Seed_Dispersal == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=Inf), color=color_seed, linetype="dashed")+
+  annotate("text", y=y_label, x=x_label, label="Seed-dispersing ants")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_seed
+
+p_lat_fixer <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & fixer == 1), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_fixer, color=color_fixer, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & fixer == 1), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_fixer, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="Nodulating legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_fixer
+
+p_lat_AM <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & AM == "Y"), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_AM, color=color_AM, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & AM == "Y"), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_AM, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="AM legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_AM
+
+p_lat_EM <- ggplot()+
+  geom_density(data=subset(df, introducedY == 1 & EM == "Y"), aes(y=abs_lat_native, x=-after_stat(density)), fill=color_EM, color=color_EM, alpha=a)+
+  geom_segment(data=subset(df, introducedY == 1 & EM == "Y"), aes(y=mean(abs_lat_native, na.rm=TRUE), yend=mean(abs_lat_native, na.rm=TRUE), x=0, xend=-Inf), color=color_EM, linetype="dashed")+
+  annotate("text", y=y_label, x=-x_label, label="EM legumes")+
+  geom_vline(aes(xintercept=0))+
+  scale_x_continuous(limits=y_limit)+
+  scale_y_continuous(limits=x_limit)+
+ylab(expression(paste("Latitude ", "|", "\u00B0", "|")))+
+  xlab("Density")+
+  theme_cowplot()
+p_lat_EM
+
+p_lat <- plot_grid(p_lat_EFN, p_lat_dom, p_lat_seed, p_lat_fixer, p_lat_AM, p_lat_EM, nrow=6, labels="AUTO")
+p_lat
+save_plot("Latitude Figure.pdf", p_lat, base_height = 12, base_width=6)
+```
