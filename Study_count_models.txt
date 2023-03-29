@@ -1,0 +1,479 @@
+Legume model results with study counts (scaled) as a predictor:
+
+P(introduction):
+
+Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) ['glmerMod']
+ Family: binomial  ( logit )
+Formula: introducedY ~ EFN + Domatia + fixer + uses_num_uses + +scale(total_area_native) +  
+    woody + annual + scale(abs_lat_native) + scale(Count) + (1 |      tribe_ncbi)
+   Data: df
+Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e+05))
+
+     AIC      BIC   logLik deviance df.resid 
+  2548.9   2616.8  -1263.5   2526.9     3523 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-12.7735  -0.3785  -0.2676  -0.1491   6.0398 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.5112   0.715   
+Number of obs: 3534, groups:  tribe_ncbi, 51
+
+Fixed effects:
+                         Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -3.54448    0.29557 -11.992  < 2e-16 ***
+EFN1                      1.25393    0.19520   6.424 1.33e-10 ***
+Domatia1                  0.43104    0.64236   0.671 0.502208    
+fixer1                    0.39940    0.23784   1.679 0.093103 .  
+uses_num_uses             1.00233    0.04935  20.312  < 2e-16 ***
+scale(total_area_native)  0.18642    0.05717   3.261 0.001110 ** 
+woody                     0.78359    0.16162   4.848 1.25e-06 ***
+annual                    0.67045    0.18640   3.597 0.000322 ***
+scale(abs_lat_native)     0.09121    0.06949   1.313 0.189337    
+scale(Count)              0.06440    0.04773   1.349 0.177257 
+-----------------
+
+Number of ranges:
+
+Linear mixed model fit by REML ['lmerMod']
+Formula: log(num_introduced) ~ EFN + Domatia + fixer + scale(abs_lat_native) +  
+    scale(total_area_native) + annual + woody + uses_num_uses +      (1 | tribe_ncbi) + scale(Count)
+   Data: legume_range_df_introducedY
+
+REML criterion at convergence: 2212.9
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-3.08730 -0.76156 -0.02128  0.68264  2.70379 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.04038  0.2009  
+ Residual               0.83804  0.9154  
+Number of obs: 814, groups:  tribe_ncbi, 39
+
+Fixed effects:
+                         Estimate Std. Error t value
+(Intercept)               0.85043    0.16256   5.231
+EFN1                      0.34166    0.09861   3.465
+Domatia1                 -0.98619    0.38385  -2.569
+fixer1                   -0.20849    0.13600  -1.533
+scale(abs_lat_native)    -0.06417    0.04209  -1.525
+scale(total_area_native) -0.05076    0.03707  -1.370
+annual                    0.01048    0.11971   0.088
+woody                    -0.21813    0.09987  -2.184
+uses_num_uses             0.32048    0.01649  19.438
+scale(Count)              0.02212    0.03224   0.686
+
+Correlation of Fixed Effects:
+            (Intr) EFN1   Domat1 fixer1 scl(b__) scl(t__) annual woody  uss_n_
+EFN1        -0.049                                                            
+Domatia1     0.025 -0.014                                                     
+fixer1      -0.780  0.031 -0.040                                              
+scl(bs_lt_)  0.022  0.062  0.064 -0.131                                       
+scl(ttl_r_)  0.077 -0.029 -0.004 -0.109  0.061                                
+annual      -0.257  0.012 -0.002 -0.028 -0.008    0.187                       
+woody       -0.543 -0.087 -0.012  0.120  0.135    0.170    0.420              
+uses_num_ss -0.282 -0.042 -0.019  0.085  0.036   -0.377    0.010 -0.059       
+scale(Cont) -0.026 -0.023  0.001  0.019 -0.008    0.023    0.036  0.090 -0.070
+> Anova(lmer1, type=3)
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: log(num_introduced)
+                            Chisq Df Pr(>Chisq)    
+(Intercept)               27.3682  1  1.682e-07 ***
+EFN                       12.0040  1  0.0005309 ***
+Domatia                    6.6009  1  0.0101926 *  
+fixer                      2.3502  1  0.1252684    
+scale(abs_lat_native)      2.3247  1  0.1273376    
+scale(total_area_native)   1.8756  1  0.1708315    
+annual                     0.0077  1  0.9302640    
+woody                      4.7710  1  0.0289430 *  
+uses_num_uses            377.8456  1  < 2.2e-16 ***
+scale(Count)               0.4708  1  0.4926187    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+---------------------
+
+Native range:
+
+Linear mixed model fit by REML ['lmerMod']
+Formula: log(total_area_native/1e+06) ~ EFN * Domatia + fixer + scale(abs_lat_native) +  
+    annual + woody + uses_num_uses + (1 | tribe_ncbi) + scale(Count)
+   Data: df
+
+REML criterion at convergence: 11432.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-9.9426 -0.3566  0.1021  0.6126  2.6940 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.1135   0.3369  
+ Residual               1.4497   1.2040  
+Number of obs: 3534, groups:  tribe_ncbi, 51
+
+Fixed effects:
+                       Estimate Std. Error t value
+(Intercept)           14.909198   0.113430 131.439
+EFN1                   0.001639   0.089576   0.018
+Domatia1               0.544276   0.300569   1.811
+fixer1                -0.092870   0.097131  -0.956
+scale(abs_lat_native) -0.181314   0.028227  -6.424
+annual                -0.078823   0.073882  -1.067
+woody                 -0.329212   0.059109  -5.570
+uses_num_uses          0.281745   0.014165  19.890
+scale(Count)           0.006944   0.020180   0.344
+EFN1:Domatia1         -2.219945   0.678145  -3.274
+
+Correlation of Fixed Effects:
+            (Intr) EFN1   Domat1 fixer1 sc(__) annual woody  uss_n_ scl(C)
+EFN1        -0.026                                                        
+Domatia1     0.026  0.036                                                 
+fixer1      -0.729  0.021 -0.055                                          
+scl(bs_lt_)  0.030  0.037  0.079 -0.110                                   
+annual      -0.200 -0.016  0.012 -0.026  0.127                            
+woody       -0.436 -0.025 -0.009  0.068  0.119  0.392                     
+uses_num_ss -0.110 -0.139  0.026  0.046  0.021  0.034 -0.075              
+scale(Cont)  0.002 -0.021  0.007  0.008 -0.017  0.003  0.025 -0.067       
+EFN1:Domat1  0.017 -0.112 -0.436 -0.016 -0.008  0.000  0.009 -0.040  0.002
+> Anova(lmer3, type=3)
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: log(total_area_native/1e+06)
+                           Chisq Df Pr(>Chisq)    
+(Intercept)           17276.3130  1  < 2.2e-16 ***
+EFN                       0.0003  1   0.985406    
+Domatia                   3.2791  1   0.070169 .  
+fixer                     0.9142  1   0.339004    
+scale(abs_lat_native)    41.2617  1  1.332e-10 ***
+annual                    1.1382  1   0.286029    
+woody                    31.0197  1  2.554e-08 ***
+uses_num_uses           395.6068  1  < 2.2e-16 ***
+scale(Count)              0.1184  1   0.730776    
+EFN:Domatia              10.7162  1   0.001062 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+------------------------
+
+Mycorrhizae:
+
+P(introduction):
+
+ Family: binomial  ( logit )
+Formula: introducedY ~ AM + EM + scale(total_area_native) + annual + woody +  
+    scale(abs_lat_native) + uses_num_uses + (1 | tribe_ncbi) +      scale(Count)
+   Data: subset(df, !is.na(myco))
+Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e+05))
+
+     AIC      BIC   logLik deviance df.resid 
+   602.8    648.0   -291.4    582.8      671 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.9072 -0.4639 -0.1961  0.4055  4.4454 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.7794   0.8829  
+Number of obs: 681, groups:  tribe_ncbi, 42
+
+Fixed effects:
+                         Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -2.4652     0.5353  -4.606 4.11e-06 ***
+AMY                       -0.1645     0.3906  -0.421   0.6736    
+EMY                       -0.2257     0.3773  -0.598   0.5497    
+scale(total_area_native)   0.2402     0.1452   1.654   0.0981 .  
+annual                     0.6992     0.5121   1.365   0.1721    
+woody                      0.9111     0.3599   2.532   0.0114 *  
+scale(abs_lat_native)      0.2008     0.1507   1.333   0.1826    
+uses_num_uses              0.9509     0.0871  10.918  < 2e-16 ***
+scale(Count)               0.1968     0.1302   1.512   0.1305    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) AMY    EMY    scl(t__) annual woody  scl(b__) uss_n_
+AMY         -0.691                                                     
+EMY         -0.198  0.196                                              
+scl(ttl_r_) -0.046  0.000  0.043                                       
+annual      -0.292  0.087  0.022  0.162                                
+woody       -0.562  0.037 -0.081  0.207    0.345                       
+scl(bs_lt_) -0.242  0.063 -0.007  0.049    0.121  0.290                
+uses_num_ss -0.326 -0.009  0.022 -0.233    0.038  0.129  0.152         
+scale(Cont) -0.038 -0.023  0.019  0.055    0.090  0.111  0.051    0.036
+> Anova(binomial3, type=3)
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: introducedY
+                            Chisq Df Pr(>Chisq)    
+(Intercept)               21.2114  1  4.113e-06 ***
+AM                         0.1774  1    0.67364    
+EM                         0.3578  1    0.54974    
+scale(total_area_native)   2.7368  1    0.09806 .  
+annual                     1.8642  1    0.17214    
+woody                      6.4095  1    0.01135 *  
+scale(abs_lat_native)      1.7760  1    0.18265    
+uses_num_uses            119.1930  1  < 2.2e-16 ***
+scale(Count)               2.2862  1    0.13053    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+------------------------
+
+Number of introduced ranges:
+
+Linear mixed model fit by REML ['lmerMod']
+Formula: log(num_introduced) ~ EM + AM + scale(total_area_native) + annual +  
+    woody + scale(abs_lat_native) + uses_num_uses + (1 | tribe_ncbi) +      scale(Count)
+   Data: subset(legume_range_df_introducedY, !is.na(myco))
+
+REML criterion at convergence: 927.8
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.90822 -0.73129  0.06945  0.70006  2.19485 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.0957   0.3094  
+ Residual               0.9525   0.9759  
+Number of obs: 320, groups:  tribe_ncbi, 34
+
+Fixed effects:
+                         Estimate Std. Error t value
+(Intercept)               0.81601    0.26595   3.068
+EMY                       0.02271    0.21828   0.104
+AMY                       0.22687    0.22360   1.015
+scale(total_area_native) -0.17808    0.06355  -2.802
+annual                    0.19322    0.23529   0.821
+woody                    -0.36651    0.16547  -2.215
+scale(abs_lat_native)    -0.11607    0.07024  -1.653
+uses_num_uses             0.31463    0.02532  12.427
+scale(Count)             -0.02952    0.05536  -0.533
+
+Correlation of Fixed Effects:
+            (Intr) EMY    AMY    scl(t__) annual woody  scl(b__) uss_n_
+EMY         -0.106                                                     
+AMY         -0.756  0.114                                              
+scl(ttl_r_) -0.035  0.058  0.022                                       
+annual      -0.261  0.010  0.074  0.239                                
+woody       -0.451 -0.141  0.006  0.182    0.360                       
+scl(bs_lt_) -0.116 -0.170 -0.005  0.022    0.078  0.212                
+uses_num_ss -0.214  0.014 -0.124 -0.246   -0.059 -0.060  0.074         
+scale(Cont) -0.024 -0.021 -0.022  0.049   -0.004  0.134  0.030   -0.028
+> Anova(lmer4, type=3)
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: log(num_introduced)
+                            Chisq Df Pr(>Chisq)    
+(Intercept)                9.4146  1   0.002153 ** 
+EM                         0.0108  1   0.917138    
+AM                         1.0295  1   0.310276    
+scale(total_area_native)   7.8508  1   0.005080 ** 
+annual                     0.6743  1   0.411546    
+woody                      4.9062  1   0.026760 *  
+scale(abs_lat_native)      2.7308  1   0.098427 .  
+uses_num_uses            154.4285  1  < 2.2e-16 ***
+scale(Count)               0.2843  1   0.593872    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+----------------------------
+
+Native range:
+
+Linear mixed model fit by REML ['lmerMod']
+Formula: log(total_area_native/1e+06) ~ AM + EM + annual + woody + scale(abs_lat_native) +  
+    uses_num_uses + (1 | tribe_ncbi) + scale(Count)
+   Data: subset(df, !is.na(myco))
+
+REML criterion at convergence: 2051.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.8810 -0.4298  0.1188  0.6295  2.1270 
+
+Random effects:
+ Groups     Name        Variance Std.Dev.
+ tribe_ncbi (Intercept) 0.09387  0.3064  
+ Residual               1.11028  1.0537  
+Number of obs: 681, groups:  tribe_ncbi, 42
+
+Fixed effects:
+                      Estimate Std. Error t value
+(Intercept)           15.59874    0.19028  81.977
+AMY                    0.06503    0.15034   0.433
+EMY                    0.14959    0.14131   1.059
+annual                -0.68109    0.18492  -3.683
+woody                 -0.61655    0.13131  -4.695
+scale(abs_lat_native) -0.02940    0.05502  -0.534
+uses_num_uses          0.16605    0.01911   8.688
+scale(Count)          -0.01536    0.04069  -0.377
+
+Correlation of Fixed Effects:
+            (Intr) AMY    EMY    annual woody  sc(__) uss_n_
+AMY         -0.727                                          
+EMY         -0.219  0.234                                   
+annual      -0.270  0.037  0.012                            
+woody       -0.518  0.001 -0.122  0.344                     
+scl(bs_lt_) -0.168  0.009 -0.038  0.097  0.263              
+uses_num_ss -0.165 -0.072  0.038  0.020  0.001  0.095       
+scale(Cont) -0.025 -0.030 -0.003  0.021  0.124  0.040 -0.037
+> Anova(lmer5, type=3)
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: log(total_area_native/1e+06)
+                          Chisq Df Pr(>Chisq)    
+(Intercept)           6720.2064  1  < 2.2e-16 ***
+AM                       0.1871  1  0.6653707    
+EM                       1.1206  1  0.2897828    
+annual                  13.5659  1  0.0002303 ***
+woody                   22.0447  1  2.664e-06 ***
+scale(abs_lat_native)    0.2856  1  0.5930248    
+uses_num_uses           75.4782  1  < 2.2e-16 ***
+scale(Count)             0.1425  1  0.7058450    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+-------------------------
+
+PGLS Models:
+
+Number of introduced ranges:
+
+Generalized least squares fit by maximum likelihood
+  Model: log(num_introduced + 1) ~ EFN + fixer + Domatia + total_area_native +      abs_lat_native + woody + uses_num_uses + annual + log(Count) 
+  Data: range_pgls 
+       AIC      BIC    logLik
+  999.7942 1047.202 -487.8971
+
+Correlation Structure: corPagel
+ Formula: ~Phy2 
+ Parameter estimate(s):
+   lambda 
+0.3620425 
+
+Coefficients:
+                       Value Std.Error   t-value p-value
+(Intercept)        0.2669289 0.3838107  0.695470  0.4872
+EFN1               0.6018383 0.1354450  4.443416  0.0000
+fixer1             0.1972816 0.2255732  0.874579  0.3824
+Domatia1          -0.1460523 0.6143331 -0.237741  0.8122
+total_area_native  0.0000000 0.0000000 -3.147747  0.0018
+abs_lat_native    -0.0087919 0.0040703 -2.159993  0.0314
+woody             -0.0735610 0.1533424 -0.479718  0.6317
+uses_num_uses      0.4068097 0.0206089 19.739533  0.0000
+annual             0.2275459 0.1819325  1.250716  0.2118
+log(Count)         0.0489805 0.0279319  1.753568  0.0803
+
+ Correlation: 
+                  (Intr) EFN1   fixer1 Domat1 ttl_r_ abs_l_ woody  uss_n_ annual
+EFN1               0.083                                                        
+fixer1            -0.216 -0.108                                                 
+Domatia1          -0.008  0.028 -0.111                                          
+total_area_native -0.109 -0.065 -0.060 -0.022                                   
+abs_lat_native    -0.253  0.048 -0.087  0.063  0.028                            
+woody             -0.500 -0.052  0.027 -0.006  0.136  0.134                     
+uses_num_uses     -0.023 -0.119  0.080  0.066 -0.295  0.128 -0.112              
+annual            -0.171 -0.022 -0.040  0.004  0.232  0.158  0.299 -0.074       
+log(Count)        -0.551 -0.091 -0.046  0.020 -0.019  0.004  0.186 -0.121  0.028
+
+Standardized residuals:
+       Min         Q1        Med         Q3        Max 
+-2.6456028 -0.6140519 -0.2366377  0.4845232  2.6662151 
+
+Residual standard error: 0.9845866 
+Degrees of freedom: 384 total; 374 residual
+-----------------
+
+Mycorrhizae
+Introduced range 
+
+Generalized least squares fit by maximum likelihood
+  Model: log(num_introduced + 1) ~ AM + EM + total_area_native + abs_lat_native +      annual + uses_num_uses + woody + log(Count) 
+  Data: range_myco_pgls 
+       AIC      BIC    logLik
+  1018.227 1061.684 -498.1134
+
+Correlation Structure: corPagel
+ Formula: ~Phy2 
+ Parameter estimate(s):
+   lambda 
+0.3167328 
+
+Coefficients:
+                       Value Std.Error   t-value p-value
+(Intercept)        0.1713446 0.4040973  0.424018  0.6718
+AMY                0.0401907 0.1726540  0.232782  0.8161
+EMY                0.1412472 0.1513367  0.933331  0.3512
+total_area_native  0.0000000 0.0000000 -2.635940  0.0087
+abs_lat_native    -0.0093148 0.0041594 -2.239460  0.0257
+annual             0.2657820 0.1872283  1.419561  0.1566
+uses_num_uses      0.4168066 0.0210487 19.802035  0.0000
+woody             -0.0649647 0.1566741 -0.414649  0.6786
+log(Count)         0.0656262 0.0284935  2.303196  0.0218
+
+ Correlation: 
+                  (Intr) AMY    EMY    ttl_r_ abs_l_ annual uss_n_ woody 
+AMY               -0.394                                                 
+EMY               -0.098  0.222                                          
+total_area_native -0.116  0.002  0.046                                   
+abs_lat_native    -0.273  0.029 -0.148  0.020                            
+annual            -0.187  0.036 -0.009  0.226  0.155                     
+uses_num_uses      0.044 -0.109  0.000 -0.299  0.130 -0.078              
+woody             -0.481  0.016 -0.095  0.134  0.158  0.305 -0.122       
+log(Count)        -0.558  0.036  0.035 -0.031  0.000  0.024 -0.134  0.185
+
+Standardized residuals:
+        Min          Q1         Med          Q3         Max 
+-2.80134984 -0.52598501 -0.07418471  0.65424594  2.75290214 
+
+Residual standard error: 0.9885978 
+Degrees of freedom: 384 total; 375 residual
+-------------------------
+
+Native range:
+
+Generalized least squares fit by maximum likelihood
+  Model: (total_area_native)^(1/4) ~ AM + EM + abs_lat_native + annual +      woody + uses_num_uses + log(Count) 
+  Data: range_myco_pgls 
+       AIC      BIC    logLik
+  5754.628 5794.134 -2867.314
+
+Correlation Structure: corPagel
+ Formula: ~Phy2 
+ Parameter estimate(s):
+   lambda 
+0.1199104 
+
+Coefficients:
+                   Value Std.Error   t-value p-value
+(Intercept)    1582.4372 169.28838  9.347583  0.0000
+AMY              48.2864  82.95299  0.582093  0.5609
+EMY             -12.5141  71.64434 -0.174669  0.8614
+abs_lat_native    0.5531   1.83817  0.300872  0.7637
+annual         -344.1112  88.13102 -3.904542  0.0001
+woody          -246.2180  70.49440 -3.492731  0.0005
+uses_num_uses    58.8677   9.61654  6.121509  0.0000
+log(Count)        9.7086  13.42243  0.723313  0.4699
+
+ Correlation: 
+               (Intr) AMY    EMY    abs_l_ annual woody  uss_n_
+AMY            -0.448                                          
+EMY            -0.119  0.257                                   
+abs_lat_native -0.321  0.033 -0.133                            
+annual         -0.192  0.039 -0.012  0.133                     
+woody          -0.522  0.012 -0.139  0.214  0.321              
+uses_num_uses  -0.001 -0.115  0.036  0.141 -0.013 -0.063       
+log(Count)     -0.632  0.013  0.032  0.006  0.031  0.219 -0.154
+
+Standardized residuals:
+        Min          Q1         Med          Q3         Max 
+-3.20958291 -0.64116480 -0.02491039  0.73869867  2.28021871 
+
+Residual standard error: 436.2455 
+Degrees of freedom: 384 total; 376 residual
