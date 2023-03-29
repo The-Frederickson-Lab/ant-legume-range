@@ -46,7 +46,7 @@ Mutualistic trait data came from Weber et al. (2015) for extrafloral nectaries (
 
 The next several chunks of code are slow to run, so they are not run here, but they are included for reproducibility.
 
-```{r Read in mutualism and legume range datasets, warning=FALSE, message=FALSE, eval=FALSE}
+```{r Read in mutualism and legume range datasets, warning=FALSE, message=FALSE}
 #Not run
 #Legume range, study count and nodulation data
 range <- read.csv("inv_dat_by_species_simonsen2017.csv") #Read in legume range data
@@ -615,13 +615,13 @@ We ran PGLS models for legumes to account for phylogenetic relationships when me
 #interaction and other covariates
 #Interactions that were not significant were removed
 
-pgls1 <- gls(log(num_introduced + 1) ~ EFN+fixer+Domatia+total_area_native+abs_lat_native+woody+uses_num_uses+annual+log(Count+1), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method="ML", data = range_pgls) 
+pgls1 <- gls(log(num_introduced + 1) ~ EFN+fixer+Domatia+scale(total_area_native)+scale(abs_lat_native)+woody+uses_num_uses+annual+scale(Count), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method="ML", data = range_pgls) 
 summary(pgls1)
 
 
 #Repeating for native area
 #PGLS with both EFN and domatia presence and fixer, interaction and covariates
-pgls2 <- gls(((total_area_native/1e12)^1/2) ~ EFN + Domatia + fixer+ abs_lat_native+ annual + woody + uses_num_uses + log(Count+1), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
+pgls2 <- gls(((total_area_native/1e12)^1/2) ~ EFN + Domatia + fixer+ scale(abs_lat_native) + annual + woody + uses_num_uses + scale(Count), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
 summary(pgls2)
 
 ```
@@ -641,11 +641,11 @@ range_myco_pgls <-range_myco_pgls[,-c(32)] #Remove some unneeded columns
 range_myco_pgls <- range_myco_pgls[complete.cases(range_myco_pgls), ] #removing NA elements
 
 #PGLS of number of introduced ranges as response variable mycorrhizae and covariates as predictors
-pgls3 <- gls(log(num_introduced + 1) ~ AM+EM + total_area_native + abs_lat_native + annual + uses_num_uses +woody + log(Count+1), correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
+pgls3 <- gls(log(num_introduced + 1) ~ AM+EM + scale(total_area_native) + scale(abs_lat_native) + annual + uses_num_uses +woody + scale(Count), correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls) 
 summary(pgls3)
 
 #Repeating for native area
-pgls4 <- gls((total_area_native/1e12)^(1/2) ~ AM+EM+ abs_lat_native+ annual + woody + uses_num_uses + log(Count+1), correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
+pgls4 <- gls((total_area_native/1e12)^(1/2) ~ AM+EM+ scale(abs_lat_native) + annual + woody + uses_num_uses + scale(Count), correlation = corPagel(1, phy = pruned.myco.pgls, form = ~ Phy2), method = "ML", data = range_myco_pgls)
 summary(pgls4)
 ```
 
@@ -1238,7 +1238,7 @@ asdefn <- plot(fit.asdefn,lwd.by.rate=TRUE)
 ### Latitudinal distribution
 We visualized the latitudinal distribution of each mutualism to understand how different mutualisms are distributed globally. For traits where we have data for both legumes and ant (e.g. the EFN-ant interaction), we plotted the distribution of both ants and legumes together.
 
-```{r Latitude}
+```{r Latitude, eval=FALSE, warning=FALSE, message=FALSE}
 #devtools::install_github("katiejolly/nationalparkcolors")
 
 library(nationalparkcolors)
