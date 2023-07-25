@@ -19,24 +19,35 @@ knitr::opts_chunk$set(echo = TRUE)
 First, let's load the packages we'll use.
 
 ```{r packages, warning=FALSE, message=FALSE}
+#General
+library(tidyverse)
+library(knitr)
+
+#Plotting
+library(cowplot)
+library(png)
+#devtools::install_github("katiejolly/nationalparkcolors")
+#library(nationalparkcolors)
+
+#Taxonomy
+library(taxize)
+
+#Linear models
 library(car)
-library(ape)
-library(geiger)
 library(lme4)
 library(nlme)
 library(lmtest)
+library(DHARMa)
+
+#Phylogenetic methods
+library(ape)
+library(geiger)
 library(phytools)
 library(caper)
-library(tidyverse)
-library(cowplot)
-library(knitr)
-library(taxize)
-library(corrplot)
-library(Hmisc)
-library(png)
-library(patchwork)
-library(grid)
-library(magick)
+
+#Maps and spatial packages
+library(sp)
+library(sf)
 ```
 
 ## Legume dataset
@@ -52,9 +63,6 @@ The next several chunks of code are slow to run, so they are not run here, but t
 range <- read.csv("inv_dat_by_species_simonsen2017.csv") #Read in legume range data
 names(range)[names(range) == "Species"] <- "Phy"
 range$Phy <- as.character(gsub("_", " ", range$Phy))
-
-#Counts
-counts <- read.csv("Study_counts_22Mar.csv")
 
 #EFN data
 EFN <- read.csv("EFNs_Weberatal_analysis_onlypresence.csv") #Read in EFN data
@@ -161,6 +169,9 @@ write.csv(EFN, file="efn_resolved.csv", row.names=FALSE)
 Merge the EFN and domatia datasets.
 
 ```{r Merge EFN and domatia, warning=FALSE, message=FALSE}
+#Counts
+counts <- read.csv("Study_counts_22Mar.csv")
+
 #Read in taxonomically resolved EFN and domatia datasets
 EFN <- read.csv("efn_resolved.csv")
 domatia <- read.csv("domatia_resolved.csv")
@@ -343,7 +354,6 @@ kable(summary.myco2)
 Let's make the figures showing how mutualistic trait affect legume native and introduced range sizes. 
 
 ```{r Legume plots for number of introduced ranges, warning=FALSE, message=FALSE, fig.width=12, fig.height=8, dpi=300}
-
 #Set sizes and widths for all figures
 pt_size <- 3
 y_limits <- c(-0.5, 15)
@@ -352,6 +362,8 @@ y_text <- -0.25
 y_inset_limits <- c(0,1)
 
 df$introducedY <- ifelse(df$num_introduced > 0, 1, 0) #Create binary variable for whether or not legume is introduced
+
+#Icons
 AM_l <- readPNG("AM.png")
 EM_l <- readPNG("EM.png")
 EFN_l <- readPNG("EFN.png")
@@ -364,7 +376,6 @@ summary.efn <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %
 
 p_EFN <- ggplot(data=summary.efn, aes(x=EFN, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "***") 
   
-
 summary.efn2 <- ungroup(df %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
 summary.efn2.wide <- spread(summary.efn2, key = introducedY, value=n)
 colnames(summary.efn2.wide) <- c("EFN","Not_introduced",  "Introduced")
@@ -374,20 +385,17 @@ prop.efn <- paste0(summary.efn2.wide$Introduced, "/", summary.efn2.wide$total)
 
 inset_p_EFN <- ggplot(data=summary.efn2.wide, aes(x=EFN, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=EFN, y=0.05, label=prop.efn), color="white")
 
-inset_p_EFN <- ggdraw() +
+EFN_icon <- ggdraw() +
   draw_image(
-    EFN_l, scale = .58, x = 0.95, y = 0.7,
+    EFN_l, scale = .53, x = 0.9, y = 0.65,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_EFN)
+  )
 
 #Domatia figure
 summary.dom <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 #kable(summary.dom)
 
 p_dom <- ggplot(data=summary.dom, aes(x=Domatia, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "*")  
-
-
 
 summary.dom2 <- ungroup(df %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
 summary.dom2.wide <- spread(summary.dom2, key = introducedY, value=n)
@@ -398,19 +406,17 @@ prop.dom <- paste0(summary.dom2.wide$Introduced, "/", summary.dom2.wide$total)
 
 inset_p_dom <- ggplot(data=summary.dom2.wide, aes(x=Domatia, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.dom), color="white")
 
-inset_p_dom <- ggdraw() +
+dom_icon <- ggdraw() +
   draw_image(
-    Dom_l, scale = .44, x = 0.85, y = 0.6,
+    Dom_l, scale = .4, x = 0.82, y = 0.6,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_dom)
+  )
 
 #Nodules figure
 summary.fix <- ungroup(subset(df, !is.na(num_introduced) & num_introduced > 0) %>% group_by(fixer) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 #kable(summary.fix)
 
 p_fix <- ggplot(data=summary.fix, aes(x=fixer, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=fixer, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nodules")+geom_text(aes(x=fixer, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 13, label = "ns") 
-
 
 summary.fix2 <- ungroup(df %>% group_by(fixer, introducedY) %>% dplyr::summarize(n=n()))
 #kable(summary.fix2)
@@ -422,19 +428,17 @@ prop.fix <- paste0(summary.fix2.wide$Introduced, "/", summary.fix2.wide$total)
 
 inset_p_fix <- ggplot(data=summary.fix2.wide, aes(x=fixer, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nodules")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=fixer, y=0.05, label=prop.fix), color="white")
 
-inset_p_fix <- ggdraw() +
+fix_icon <- ggdraw() +
   draw_image(
-    Fix_l, scale = .67, x = 0.95, y = 0.6,
+    Fix_l, scale = .67, x = 0.95, y = 0.55,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_fix)
+  )
 
 #Mycorrhizae figure
 summary.AM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(AM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 #kable(summary.AM)
 
 p_AM <- ggplot(data=summary.AM, aes(x=AM, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=AM, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+geom_line(aes(group=1), linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("AM")+geom_text(aes(x=AM, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 13, label = "ns")
-
 
 summary.EM <- ungroup(subset(df, !is.na(num_introduced) & !is.na(myco) & num_introduced > 0) %>% group_by(EM) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n)))
 kable(summary.EM)
@@ -450,12 +454,11 @@ prop.AM <- paste0(summary.AM2.wide$Introduced, "/", summary.AM2.wide$total)
 
 inset_p_AM <- ggplot(data=summary.AM2.wide, aes(x=AM, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("AM")+scale_y_continuous(limits=y_inset_limits)+annotate("text",x = 1.5, y = 0.55,label = "ns")+geom_text(aes(x=AM, y=0.05, label=prop.AM), color="white")
 
-inset_p_AM <- ggdraw() +
+AM_icon <- ggdraw() +
   draw_image(
-    AM_l, scale = .5, x = 0.9, y = 0.65,
+    AM_l, scale = .5, x = 0.85, y = 0.6,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_AM)
+  ) 
 
 summary.EM2 <- ungroup(subset(df, !is.na(myco)) %>% group_by(EM, introducedY) %>% dplyr::summarize(n=n()))
 summary.EM2.wide <- spread(summary.EM2, key = introducedY, value=n)
@@ -466,17 +469,16 @@ prop.EM <- paste0(summary.EM2.wide$Introduced, "/", summary.EM2.wide$total)
 
 inset_p_EM <- ggplot(data=summary.EM2.wide, aes(x=EM, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("EM")+scale_y_continuous(limits=y_inset_limits)+annotate("text",x = 1.5, y = 0.55,label = "ns")+geom_text(aes(x=EM, y=0.05, label=prop.EM), color="white")
 
-inset_p_EM <- ggdraw() +
-  draw_image(
-    EM_l, scale = .5, x = 0.9, y = 0.685,
+EM_icon <- ggdraw() + draw_image(
+    EM_l, scale = .5, x = 0.88, y = 0.65,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_EM)
+  ) 
 
-fig1 <- plot_grid(inset_p_EFN, inset_p_dom, inset_p_fix, inset_p_AM, inset_p_EM, p_EFN, p_dom, p_fix, p_AM, p_EM, labels=c("AUTO"), nrow=2, ncol=5, align = "v", axis = "bt")
-fig1
-save_plot("Figure1.pdf", fig1, base_height=8, base_width=14)
-save_plot("Figure1.png", fig1, base_height=8, base_width=14)
+fig1 <- cowplot::plot_grid(inset_p_EFN, inset_p_dom, inset_p_fix, inset_p_AM, inset_p_EM, p_EFN, p_dom, p_fix, p_AM, p_EM, labels=c("AUTO"), nrow=2, ncol=5,align="hv", axis="tblr")
+fig1_full <- ggdraw()+cowplot::draw_plot(cowplot::plot_grid(EFN_icon, dom_icon, fix_icon, AM_icon, EM_icon, nrows=1, ncol=5)) + cowplot::draw_plot(fig1)
+fig1_full
+save_plot("Figure1.pdf", fig1_full, base_height=8, base_width=14)
+save_plot("Figure1.png", fig1_full, base_height=8, base_width=14)
 ```
 
 We can also plot the effect of the same mutualistic traits on the native range size of legumes. 
@@ -525,7 +527,6 @@ save_plot("Figure2.pdf", fig2, base_height = 8, base_width = 8)
 One approach is to use mixed models with legume tribe as a random effect to account for the non-independence of species in a tribe. The response variable (number of introduced ranges) is very non-normal so we fit two models: a binomial GLMM modelling whether or not a legume species is introduced, and linear mixed models of the number of introduced ranges for introduced species only. 
 
 ```{r Legume mixed models, warning=FALSE, message=FALSE}
-
 #Fit binomial model for whether or not a legume species has been introduced
 binomial1 <- glmer(introducedY~EFN+Domatia+fixer+uses_num_uses + +scale(total_area_native)+woody+annual+scale(abs_lat_native)+scale(Count)+(1|tribe_ncbi), data=df, family="binomial",glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=100000)))
 summary(binomial1) 
@@ -548,7 +549,22 @@ legume_range_df_introducedY <- subset(df, num_introduced >0) #Filter to species 
 lmer1 <- lmer(log(num_introduced)~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi)+scale(Count), data=legume_range_df_introducedY)
 summary(lmer1)
 Anova(lmer1, type=3)
-#plot(lmer1)
+plot(lmer1)
+
+#Use DHARMa package to examine model fit
+testDispersion(lmer1)
+simulationOutput_lmer1 <- simulateResiduals(fittedModel = lmer1, plot=T)
+
+#Negative binomial model for count data
+nb1 <- glmer.nb(num_introduced~EFN+Domatia+fixer+scale(abs_lat_native)+scale(total_area_native)+annual+woody+uses_num_uses+(1|tribe_ncbi)+scale(Count), data=legume_range_df_introducedY)
+summary(nb1)
+plot(nb1)
+
+#Use DHARMa package to examine model fit
+testDispersion(nb1)
+simulationOutput_nb1 <- simulateResiduals(fittedModel = nb1, plot=T)
+
+#Model with log-transformed data and gaussian errors fits better than negative binomial GLMM
 
 #Removed the interaction when nonsig 
 
@@ -565,7 +581,7 @@ anova(lmer1, lm2) #Random effect improves model fit to data
 lmer3 <- lmer(log(total_area_native/1e+6)~EFN*Domatia+fixer+scale(abs_lat_native)+annual+woody+uses_num_uses+(1|tribe_ncbi) + scale(Count), data=df)
 summary(lmer3)
 Anova(lmer3, type=3)
-
+#plot(lmer3)
 
 #Mycorrhizae
 #Successful introduction?
@@ -580,6 +596,19 @@ summary(lmer4)
 Anova(lmer4, type=3)
 #plot(lmer4)
 
+#Use DHARMa package to examine model fit
+testDispersion(lmer4)
+simulationOutput_lmer4 <- simulateResiduals(fittedModel = lmer4, plot=T)
+
+#Negative binomial model for count data
+nb2 <- glmer.nb(num_introduced~EM+AM+scale(total_area_native)+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi) + scale(Count), data=subset(legume_range_df_introducedY, !is.na(myco)))
+summary(nb2)
+plot(nb2)
+
+#Use DHARMa package to examine model fit
+testDispersion(nb2)
+simulationOutput_nb2 <- simulateResiduals(fittedModel = nb2, plot=T)
+
 #Native range size
 lmer5 <- lmer(log(total_area_native/1e+6)~AM+EM+annual+woody+scale(abs_lat_native)+uses_num_uses+(1|tribe_ncbi) + scale(Count), data=subset(df, !is.na(myco)))
 summary(lmer5)
@@ -588,7 +617,6 @@ Anova(lmer5, type=3)
 ```
 
 #### Preparing dataset for pgls analysis
-
 
 ```{r PGLS, warning=FALSE, message=FALSE}
 #Creating a column with genus and species name in the appropriate format
@@ -618,12 +646,10 @@ We ran PGLS models for legumes to account for phylogenetic relationships when me
 pgls1 <- gls(log(num_introduced + 1) ~ EFN+fixer+Domatia+scale(total_area_native)+scale(abs_lat_native)+woody+uses_num_uses+annual+scale(Count), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method="ML", data = range_pgls) 
 summary(pgls1)
 
-
 #Repeating for native area
 #PGLS with both EFN and domatia presence and fixer, interaction and covariates
 pgls2 <- gls(((total_area_native/1e12)^1/2) ~ EFN + Domatia + fixer+ scale(abs_lat_native) + annual + woody + uses_num_uses + scale(Count), correlation = corPagel(1, phy = pruned.tree.pgls, form = ~ Phy2), method = "ML", data = range_pgls)
 summary(pgls2)
-
 ```
 
 #### PGLS models for mycorrhizae
@@ -669,20 +695,31 @@ summary.mnum2.wide$total <- summary.mnum2.wide$Not_introduced+summary.mnum2.wide
 summary.mnum2.wide$prop.introduced <- summary.mnum2.wide$Introduced/(summary.mnum2.wide$total)
 prop.mnum <- paste0(summary.mnum2.wide$Introduced, "/", summary.mnum2.wide$total)
 
-inset_p_mnum <- ggplot(data=subset(summary.mnum2.wide, !is.na(num_mutualisms)), aes(x=num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+xlab("Mutualisms (no.)")+ylab("Introduced (prop.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 2, y = 0.55, label = "*")+geom_text(aes(x=num_mutualisms, y=0.05, label=prop.mnum), color="white")
+inset_p_mnum <- ggplot(data=subset(summary.mnum2.wide, !is.na(num_mutualisms)), aes(x=num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+xlab("Mutualistic traits (no.)")+ylab("Introduced (prop.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 2, y = 0.55, label = "*")+geom_text(aes(x=num_mutualisms, y=0.05, label=prop.mnum), color="white")
 
 #Making figures for number of introduced ranges
 summary.mnum <- subset(df, !is.na(num_mutualisms) & introducedY == 1) %>% group_by(num_mutualisms) %>% dplyr::summarize(n=n(), mean_num_introduced = mean(num_introduced, na.rm=TRUE), sd_num_introduced = sd(num_introduced, na.rm=TRUE), se_num_introduced = sd_num_introduced/sqrt(n))
 summary.mnum$num_mutualisms <- as.factor(summary.mnum$num_mutualisms)
 
-p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+geom_text(aes(x=num_mutualisms, y= 3, label=n))+annotate("text", x=3, y=15.5, label="p = 0.07")
+p_num_mutualisms <- ggplot(data=summary.mnum, aes(x=num_mutualisms, y=mean_num_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num_mutualisms, ymin=mean_num_introduced-se_num_introduced, ymax=mean_num_introduced+se_num_introduced), width=er_width)+theme_cowplot()+ylab("Introduced ranges (no.)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits (no.)")+geom_text(aes(x=num_mutualisms, y= 3, label=n))+annotate("text", x=3, y=15.5, label="p = 0.07")
 p_num_mutualisms
 
 #Linear models to see if the proportion introduced and the number of introduced ranges vary with number of mutualisms
 lmer6 <-  lmer(log(num_introduced)~num_mutualisms+annual+scale(abs_lat_native)+woody+uses_num_uses+scale(total_area_native)+(1|tribe_ncbi)+scale(Count), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
 summary(lmer6)
 Anova(lmer6, type=3)
-#plot(lmer6)
+
+#Use DHARMa package to examine model fit
+testDispersion(lmer6)
+simulationOutput_lmer6 <- simulateResiduals(fittedModel = lmer6, plot=T)
+
+#Negative binomial GLMM for count data
+nb3 <- glmer.nb(num_introduced~num_mutualisms+annual+scale(abs_lat_native)+woody+uses_num_uses+scale(total_area_native)+(1|tribe_ncbi)+scale(Count), data=subset(df, !is.na(num_mutualisms) & introducedY == 1))
+summary(nb3)
+
+#Use DHARMa package to examine model fit
+testDispersion(nb3)
+simulationOutput_nb3 <- simulateResiduals(fittedModel = nb3, plot=T)
 
 binomial4 <-  glmer(introducedY~num_mutualisms+annual+woody+scale(abs_lat_native)+uses_num_uses+scale(total_area_native)+(1|tribe_ncbi)+scale(Count), data=subset(df, !is.na(num_mutualisms)), family="binomial")
 summary(binomial4)
@@ -695,72 +732,6 @@ save_plot("Figure3.pdf", fig3, base_height = 8, base_width=5)
 
 sum.nmum <- subset(df, !is.na(num_mutualisms)) %>% group_by(AM, EM, Domatia, EFN, fixer, num_mutualisms) %>% dplyr::summarize(n=n())
 kable(sum.nmum)
-```
-
-#### Pagel correlations between traits
-Pagel's correlation is used to understand if two binary traits show correlated evolution on a phylogeny.
-Here, we calculated Pagel correlation for each pair of mutualistic traits in legumes.
-
-
-```{r Legume Pagel, warning=FALSE, message=FALSE, eval=FALSE}
-#Pagel correlation between traits
-range_pagel <- df[df$Phy2 %in% phyint, ]
-range_pagel <-range_pagel[,-c(23:28, 32, 34)] #Remove some unneeded columns
-
-range_pagel <- range_pagel[!duplicated(range_pagel$Phy2), ] #Removing duplicated data
-range_pagel <- range_pagel[complete.cases(range_pagel), ] 
-
-names <- pruned.tree.pgls$tip.label 
-names <- names[names %in% range_pagel$Phy2]
-
-traits <- data.frame(range_pagel$Phy2, range_pagel$AM, range_pagel$EM, range_pagel$EFN, range_pagel$Domatia, range_pagel$fixer)
-colnames(traits) <- c("Phy", "AM", "EM", "EFN", "Domatia", "Fixer")
-traits <- arrange(traits, names)
-
-#[match(as.character(pruned.tree.pgls$tip.label), traits$Phy),]
-
-rownames(traits) <- traits[,1]
-traits[,1] <- NULL
-head(traits)
-
-AM<-setNames(traits$AM,rownames(traits))
-EM<-setNames(traits$EM,rownames(traits))
-EFN<-setNames(traits$EFN,rownames(traits))
-Domatia<-setNames(traits$Domatia,rownames(traits))
-fixer<-setNames(traits$Fixer,rownames(traits))
-
-#Subsetting phylogeny
-phyint2 <- intersect(pruned.tree.pgls$tip.label, range_pagel$Phy2)  
-phydiff2 <- setdiff(pruned.tree.pgls$tip.label, range_pagel$Phy2)
-pruned.pagel <- drop.tip(pruned.tree.pgls, phydiff2) #dropping tips not in the dataset
-
-fit.amem <- fitPagel(pruned.pagel, AM, EM)
-amem <- plot(fit.amem,lwd.by.rate=TRUE)
-
-fit.amefn <- fitPagel(pruned.pagel, AM, EFN) #nonsig
-
-fit.amdom <- fitPagel(pruned.pagel, AM, Domatia) #signif.
-amdom <- plot(fit.amdom,lwd.by.rate=TRUE)
-
-fit.amfix <- fitPagel(pruned.pagel, AM, fixer) #pval 0.009
-amfix <- plot(fit.amfix,lwd.by.rate=TRUE)
-
-fit.emefn <- fitPagel(pruned.pagel, EM, EFN) #nonsig
-
-fit.emdom <- fitPagel(pruned.pagel, EM, Domatia)
-emdom <- plot(fit.emdom,lwd.by.rate=TRUE)
-
-fit.emfix <- fitPagel(pruned.pagel, EM, fixer) #pval 0.0004
-emfix <- plot(fit.emfix, lwd.by.rate=TRUE)
-
-fit.efndom <- fitPagel(pruned.pagel, EFN, Domatia)
-efndom <- plot(fit.efndom, lwd.by.rate=TRUE)
-
-fit.efnfix <- fitPagel(pruned.pagel, EFN, fixer) #nonsig
-
-fit.domfix <- fitPagel(pruned.pagel, Domatia, fixer) #marginally sig
-domfix <- plot(fit.domfix, lwd.by.rate=TRUE)
-
 ```
 
 ## Ant dataset
@@ -838,7 +809,7 @@ write.csv(area, "ant_areas.csv")
 
 ### Summarize ant dataset
 
-```{r}
+```{r Summarize ant trait data in tables, message=FALSE, warning=FALSE}
 area <- read.csv("ant_areas.csv")
 area$tribe <- as.factor(area$tribe)
 
@@ -847,6 +818,7 @@ kable(subset(area, !is.na(introducedY)) %>% group_by(EFN) %>% dplyr::summarize(n
 kable(subset(area, !is.na(introducedY)) %>% group_by(Domatia) %>% dplyr::summarize(n=n()))
 kable(subset(area, !is.na(introducedY)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n()))
 ```
+
 ### Make figures
 Let's make the figures showing how mutualistic trait affect ant native and introduced range sizes. 
 
@@ -861,10 +833,14 @@ Dom_a <- readPNG("Domatia_ant.png")
 Disp_a <- readPNG("SD.png")
 
 #For EFN visitation
-summary.ant.efn <- subset(area, introducedY == 1 & !is.na(EFN)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
 
-p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Visits EFNs")+scale_x_discrete(labels=c("No", "Yes"))+geom_text(aes(x=EFN, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+annotate("text", x = 0.5, y = 20, label = "**")
+summary.ant.efn <- subset(area, introducedY == 1 & !is.na(EFN)) %>%group_by(EFN) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.efn <- summary.ant.efn %>% mutate(EFN = factor(EFN, levels = c(0, 1), labels = c("No", "Yes")))
+
+# For the plot 'inset_p_antEFN'
+p_antEFN <- ggplot(data=summary.ant.efn, aes(x=EFN, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 20, label = "**") 
 #Adjust labels
+summary.ant.efn$EFN <- factor(summary.ant.efn$EFN, levels = c(0, 1), labels = c("No", "Yes"))
 
 summary.ant.efn2 <- ungroup(subset(area, !is.na(EFN)) %>% group_by(EFN, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.efn2.wide <- spread(summary.ant.efn2, key = introducedY, value=n)
@@ -872,20 +848,22 @@ colnames(summary.ant.efn2.wide) <- c("EFN","Not_introduced",  "Introduced")
 summary.ant.efn2.wide$total <- summary.ant.efn2.wide$Not_introduced+summary.ant.efn2.wide$Introduced
 summary.ant.efn2.wide$prop.introduced <- summary.ant.efn2.wide$Introduced/(summary.ant.efn2.wide$total)
 prop.ant.efn <- paste0(summary.ant.efn2.wide$Introduced, "/", summary.ant.efn2.wide$total)
+summary.ant.efn2.wide$EFN <- factor(summary.ant.efn2.wide$EFN, levels = c(0, 1), labels = c("No", "Yes"))
 
-inset_p_antEFN <- ggplot(data=summary.ant.efn2.wide, aes(x=EFN, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Visits EFNs")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 0.5, y = 0.55, label = "***")+geom_text(aes(x=EFN, y=0.05, label=prop.ant.efn), color="white")
+inset_p_antEFN <- ggplot(data=summary.ant.efn2.wide, aes(x=EFN, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+ylab("Introduced (prop.)")+xlab("Visits EFNs")+scale_x_discrete(labels=c("No", "Yes"))+
+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.4, y = 0.55, label = "***")+geom_text(aes(x=EFN, y=0.05, label=prop.ant.efn), color="white")
 
-inset_p_antEFN <- ggdraw() +
+antefn_pic <- ggdraw() +
   draw_image(
-    EFN_a, scale = .44, x = 0.85, y = 0.6,
+    EFN_a, scale = .44, x = 0.75, y = 0.62,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_antEFN)
+  ) 
 
 #For residing in domatia
 summary.ant.dom <- subset(area, introducedY == 1 & !is.na(Domatia)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.dom$Domatia <- factor(summary.ant.dom$Domatia, levels = c(0, 1), labels = c("No", "Yes"))
 
-p_antdom <- ggplot(data=summary.ant.dom, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 20, label = "ns")
+p_antdom <- ggplot(data=summary.ant.dom, aes(x=Domatia, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 20, label = "ns")
 
 summary.ant.dom2 <- ungroup(subset(area, !is.na(Domatia)) %>% group_by(Domatia, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.dom2.wide <- spread(summary.ant.dom2, key = introducedY, value=n)
@@ -893,20 +871,21 @@ colnames(summary.ant.dom2.wide) <- c("Domatia","Not_introduced",  "Introduced")
 summary.ant.dom2.wide$total <- summary.ant.dom2.wide$Not_introduced+summary.ant.dom2.wide$Introduced
 summary.ant.dom2.wide$prop.introduced <- summary.ant.dom2.wide$Introduced/(summary.ant.dom2.wide$total)
 prop.ant.dom <- paste0(summary.ant.dom2.wide$Introduced, "/", summary.ant.dom2.wide$total)
+summary.ant.dom2.wide$Domatia <- factor(summary.ant.dom2.wide$Domatia, levels = c(0, 1), labels = c("No", "Yes"))
 
-inset_p_antdom <- ggplot(data=summary.ant.dom2.wide, aes(x=Domatia, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 0.5, y = 0.55, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.ant.dom), color="white")
+inset_p_antdom <- ggplot(data=summary.ant.dom2.wide, aes(x=Domatia, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Nests in domatia")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "ns")+geom_text(aes(x=Domatia, y=0.05, label=prop.ant.dom), color="white")
 
-inset_p_antdom <- ggdraw() +
+antdom_pic <- ggdraw() +
   draw_image(
-    Dom_a, scale = .55, x = 0.85, y = 0.6,
+    Dom_a, scale = .55, x = 0.85, y = 0.7,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_antdom)
+  ) 
 
 #For myrmecochory (seed dispersal by ants)
 summary.ant.elaiosome <- subset(area, introducedY == 1 & !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_introduced = sd_introduced/sqrt(n))
+summary.ant.elaiosome$Seed_Dispersal <- factor(summary.ant.elaiosome$Seed_Dispersal, levels = c(0, 1), labels = c("No", "Yes"))
 
-p_elaiosome <- ggplot(data=summary.ant.elaiosome, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 0.5, y = 20, label = "ns")
+p_elaiosome <- ggplot(data=summary.ant.elaiosome, aes(x=Seed_Dispersal, y=mean_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_introduced-se_introduced, ymax=mean_introduced+se_introduced), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Introduced ranges (no.)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_y_continuous(limits=y_limits)+scale_x_discrete(labels=c("No", "Yes"))+annotate("text", x = 1.5, y = 20, label = "ns")
 
 summary.ant.seed2 <- ungroup(subset(area, !is.na(Seed_Dispersal)) %>% group_by(Seed_Dispersal, introducedY) %>% dplyr::summarize(n=n()))
 summary.ant.seed2.wide <- spread(summary.ant.seed2, key = introducedY, value=n)
@@ -914,20 +893,21 @@ colnames(summary.ant.seed2.wide) <- c("Seed_Dispersal","Not_introduced",  "Intro
 summary.ant.seed2.wide$total <- summary.ant.seed2.wide$Not_introduced+summary.ant.seed2.wide$Introduced
 summary.ant.seed2.wide$prop.introduced <- summary.ant.seed2.wide$Introduced/(summary.ant.seed2.wide$total)
 prop.ant.seed <- paste0(summary.ant.seed2.wide$Introduced, "/", summary.ant.seed2.wide$total)
+summary.ant.seed2.wide$Seed_Dispersal <- factor(summary.ant.seed2.wide$Seed_Dispersal, levels = c(0, 1), labels = c("No", "Yes"))
 
-inset_p_antseed <- ggplot(data=summary.ant.seed2.wide, aes(x=Seed_Dispersal, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+scale_x_discrete(labels=c("No", "Yes"))+ylab("Introduced (prop.)")+xlab("Disperses seeds")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 0.5, y = 0.55, label = "***")+geom_text(aes(x=Seed_Dispersal, y=0.05, label=prop.ant.seed), color="white")
+inset_p_antseed <- ggplot(data=summary.ant.seed2.wide, aes(x=Seed_Dispersal, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+ylab("Introduced (prop.)")+xlab("Disperses seeds")+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=Seed_Dispersal, y=0.05, label=prop.ant.seed), color="white")
 
-inset_p_antseed <- ggdraw() +
+antseed_pic <- ggdraw() +
   draw_image(
     Disp_a, scale = .35, x = 0.7, y = 0.55,
     hjust = 1, halign = 1, valign = 0
-  ) +
-  draw_plot(inset_p_antseed)
+  ) 
 
 fig4 <- plot_grid(inset_p_antEFN, inset_p_antseed, inset_p_antdom, p_antEFN, p_elaiosome, p_antdom, nrow=2, labels="AUTO", align="v", axis="bt")
-fig4
-save_plot("Figure4.pdf", fig4, base_width=14, base_height =8)
-save_plot("Figure4.png", fig4, base_width=14, base_height =8)
+fig4_full <- ggdraw()+cowplot::draw_plot(cowplot::plot_grid(antefn_pic, antseed_pic, antdom_pic, nrows=1, ncol=3)) + cowplot::draw_plot(fig4)
+fig4_full
+save_plot("Figure4.pdf", fig4_full, base_width=14, base_height =8)
+save_plot("Figure4.png", fig4_full, base_width=14, base_height =8)
 ```
 
 #### Native range size
@@ -939,19 +919,21 @@ y_text = 3300000
 
 #For visiting EFNs
 summary.ant.efn.native <- subset(area, !is.na(EFN) & !is.na(total.area.native)) %>% group_by(EFN) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.efn.native$EFN <-factor(summary.ant.efn.native$EFN, levels = c(0, 1), labels = c("No", "Yes"))
 
-
-p_antEFN_native <- ggplot(data=summary.ant.efn.native, aes(x=EFN, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = .5, y = 8100000, label = "***")
+p_antEFN_native <- ggplot(data=summary.ant.efn.native, aes(x=EFN, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=EFN, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Visits EFNs")+geom_text(aes(x=EFN, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "***")
 
 #For resifding in domatia
 summary.ant.dom.native <- subset(area, !is.na(Domatia)& !is.na(total.area.native)) %>% group_by(Domatia) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.dom.native$Domatia <-factor(summary.ant.dom.native$Domatia, levels = c(0, 1), labels = c("No", "Yes"))
 
-p_antdom_native <- ggplot(data=summary.ant.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = .5, y = 8100000, label = "ns")
+p_antdom_native <- ggplot(data=summary.ant.dom.native, aes(x=Domatia, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Domatia, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Nests in domatia")+geom_text(aes(x=Domatia, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "ns")
 
 #For seed dispersal
 summary.ant.seed.native <- subset(area, !is.na(Seed_Dispersal)& !is.na(total.area.native)) %>% group_by(Seed_Dispersal) %>% dplyr::summarize(n=n(), mean_native = mean(total.area.native, na.rm=TRUE), sd_native = sd(total.area.native, na.rm=TRUE), se_native = sd_native/sqrt(n))
+summary.ant.seed.native$Seed_Dispersal <-factor(summary.ant.seed.native$Seed_Dispersal, levels = c(0, 1), labels = c("No", "Yes"))
 
-p_antseed_native <- ggplot(data=summary.ant.seed.native, aes(x=Seed_Dispersal, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = .5, y = 8100000, label = "***")
+p_antseed_native <- ggplot(data=summary.ant.seed.native, aes(x=Seed_Dispersal, y=mean_native))+geom_point(size=pt_size)+geom_errorbar(aes(x=Seed_Dispersal, ymin=mean_native-se_native, ymax=mean_native+se_native), width=er_width)+ geom_line(aes(group=1),linetype="dashed")+theme_cowplot()+ylab("Native range (sq. km)")+xlab("Disperses seeds")+geom_text(aes(x=Seed_Dispersal, y= y_text, label=n))+scale_x_discrete(labels=c("No", "Yes"))+scale_y_continuous(limits=y_limits)+annotate("text", x = 1.5, y = 8100000, label = "***")
 
 fig5 <- plot_grid(p_antEFN_native, p_antseed_native, p_antdom_native, nrow=1, labels="AUTO")
 fig5
@@ -977,6 +959,18 @@ summary(lmer7)
 Anova(lmer7, type=3)
 #plot(lmer7)
 
+#Use DHARMa package to examine model fit
+testDispersion(lmer7)
+simulationOutput_lmer7 <- simulateResiduals(fittedModel = lmer7, plot=T)
+
+#Negative binomial model for count data
+nb4 <- glmer.nb(n_introduced_ranges~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
+summary(nb4)
+
+#Use DHARMa package to examine model fit
+testDispersion(nb4)
+simulationOutput_nb4 <- simulateResiduals(fittedModel = nb4, plot=T)
+
 #Native range area
 lmer10 <- lmer(log(total.area.native)~EFN+Domatia+Seed_Dispersal+scale(abs_lat_native)+(1|tribe), data=area)
 summary(lmer10)
@@ -984,10 +978,8 @@ Anova(lmer10, type=3)
 #plot(lmer10)
 ```
 
-
 ### Multiple mutualisms
-We can also look at the effects of multiple mutualisms on introduction success and no. of introduced ranges in ants
-
+We can also look at the effects of multiple mutualisms on introduction success and no. of introduced ranges in ants.
 
 ```{r}
 #Calculating the number of mutualisms that each ant species participates in
@@ -997,12 +989,24 @@ area$num.mm <- as.numeric(as.character(area$Seed_Dispersal))+as.numeric(as.chara
 binomial10 <- glmer(introducedY ~ num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=area, family ="binomial")
 summary(binomial10)
 Anova(binomial10, type=3)
-plot(binomial10)
+#plot(binomial10)
 
 #Model to understand if the number of introduced ranges vary with number of mutualisms
 lmer11 <- lmer(log(n_introduced_ranges)~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
 summary(lmer11)
 Anova(lmer11, type=3)
+
+#Use DHARMa package to examine model fit
+testDispersion(lmer11)
+simulationOutput_lmer11 <- simulateResiduals(fittedModel = lmer11, plot=T)
+
+#Negative binomial GLMM
+nb5 <- glmer.nb(n_introduced_ranges~num.mm + scale(abs_lat_native)+scale(total.area.native)+(1|tribe), data=subset(area, introducedY == 1))
+summary(nb5)
+
+#Use DHARMa package to examine model fit
+testDispersion(nb5)
+simulationOutput_nb5 <- simulateResiduals(fittedModel = nb5, plot=T)
 
 #Making figures to understand the effects of the number of mutualisms on introduction success
 #and number of introiduced ranges
@@ -1016,15 +1020,15 @@ summary.ant.mm.wide$prop.introduced <- summary.ant.mm.wide$Introduced/(summary.a
 prop.ant.mm <- paste0(summary.ant.mm.wide$Introduced, "/", summary.ant.mm.wide$total)
 prop.ant.mm <- prop.ant.mm[1:4]
 
-inset_p_antmm <- ggplot(data=subset(summary.ant.mm.wide, !is.na(Num_mutualisms)),aes(x=Num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+ylab("Introduced (prop.)")+xlab("Mutualisms (no.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=Num_mutualisms, y=0.05, label=prop.ant.mm), color="white")
+inset_p_antmm <- ggplot(data=subset(summary.ant.mm.wide, !is.na(Num_mutualisms)),aes(x=Num_mutualisms, y=prop.introduced))+geom_bar(stat="identity")+theme_cowplot()+ylab("Introduced (prop.)")+xlab("Mutualistic traits (no.)")+scale_y_continuous(limits=y_inset_limits)+annotate("text", x = 1.5, y = 0.55, label = "***")+geom_text(aes(x=Num_mutualisms, y=0.05, label=prop.ant.mm), color="white")
 
 #Number of introduced ranges
 summary.ant.mnum1 <- subset(area, !is.na(num.mm) & introducedY == 1) %>% group_by(num.mm) %>% dplyr::summarize(n=n(), mean_area_introduced = mean(n_introduced_ranges, na.rm=TRUE), sd_area_introduced = sd(n_introduced_ranges, na.rm=TRUE), se_area_introduced = sd_area_introduced/sqrt(n))
 summary.ant.mnum1$num.mm <- as.factor(summary.ant.mnum1$num.mm)
 
-p_num_mm <- ggplot(data=summary.ant.mnum1, aes(x=num.mm, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num.mm, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+theme_cowplot()+ylab("Introduced range (sq. km)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualisms (no.)")+geom_text(aes(x=num.mm, y= -1, label=n))+annotate("text", x=1.5, y=25, label="**")
+p_num_mm <- ggplot(data=summary.ant.mnum1, aes(x=num.mm, y=mean_area_introduced))+geom_point(size=pt_size)+geom_errorbar(aes(x=num.mm, ymin=mean_area_introduced-se_area_introduced, ymax=mean_area_introduced+se_area_introduced), width=er_width)+theme_cowplot()+ylab("Introduced range (sq. km)")+geom_line(aes(group=1),linetype="dashed")+xlab("Mutualistic traits (no.)")+geom_text(aes(x=num.mm, y= -1, label=n))+annotate("text", x=2.5, y=25, label="**")
 
-fig6 <- plot_grid(inset_p_antmm, p_num_mm, ncol=1, labels="AUTO")
+fig6 <- plot_grid(inset_p_antmm, p_num_mm, ncol=1, labels="AUTO", align='v', axis='lr')
 fig6
 save_plot("Figure6.pdf", fig6, base_height = 8, base_width=5)
 ```
@@ -1193,55 +1197,11 @@ a3 <- gls(log(n_introduced_ranges+1) ~  EFN + Domatia + Seed_Dispersal +  total.
 summary(a3)
 
 ```
-#### Pagel correlations between traits
-As we did for the legumes, we calculated Pagel's correlation for each pair of mutualistic traits to understand if correlated evolution occurred.
-
-```{r ant Pagel, warning=FALSE, message=FALSE, eval=FALSE}
-#Subsetting data to necessary columns
-area_pagel <- area[area$Phy %in% area$Phy, c("Phy", "EFN", "Domatia", "Seed_Dispersal")]
-area_pagel <- area_pagel[complete.cases(area_pagel), ]
-
-ant_tree <- read.tree("Ant_tree.tre") #Reading in ant phylogeny
-phy_int1 <- intersect(ant_tree$tip.label, area_pagel$Phy)
-phy_diff1 <- setdiff(ant_tree$tip.label, area_pagel$Phy)
-ant_tree_pagel <- drop.tip(ant_tree, as.character(phy_diff1)) #Pruning tree to contain tips in the dataset
-
-area_pagel <- area_pagel[area_pagel$Phy %in% ant_tree_pagel$tip.label,]
-
-ant_traits <- data.frame(area_pagel$Phy, area_pagel$EFN, area_pagel$Domatia, area_pagel$Seed_Dispersal)
-colnames(ant_traits) <- c("Phy", "EFN", "Domatia", "Seed_dispersal")
-ant_traits <- arrange(ant_traits, ant_tree_pagel$tip.label)
-
-
-rownames(ant_traits) <- ant_traits[,1]
-ant_traits[,1] <- NULL
-head(ant_traits)
-
-EFN <-setNames(ant_traits$EFN,rownames(ant_traits))
-Domatia <-setNames(ant_traits$Domatia,rownames(ant_traits))
-sd <-setNames(ant_traits$Seed_dispersal,rownames(ant_traits))
-
-#EFN and Domatia
-fit.aefndom <- fitPagel(ant_tree_pagel, EFN, Domatia) #stat sig
-aefndom <- plot(fit.aefndom,lwd.by.rate=TRUE)
-
-
-fit.adomsd <- fitPagel(ant_tree_pagel, Domatia, sd) #not sig
-
-
-fit.asdefn <- fitPagel(ant_tree_pagel, sd, EFN) #pval 0.04
-asdefn <- plot(fit.asdefn,lwd.by.rate=TRUE)
-
-
-```
 
 ### Latitudinal distribution
 We visualized the latitudinal distribution of each mutualism to understand how different mutualisms are distributed globally. For traits where we have data for both legumes and ant (e.g. the EFN-ant interaction), we plotted the distribution of both ants and legumes together.
 
 ```{r Latitude, eval=FALSE, warning=FALSE, message=FALSE}
-#devtools::install_github("katiejolly/nationalparkcolors")
-
-library(nationalparkcolors)
 pal="Saguaro"
 color_EFN = park_palette(pal)[1]
 color_dom = park_palette(pal)[2]
@@ -1353,4 +1313,286 @@ p_lat_EM
 p_lat <- plot_grid(p_lat_EFN, p_lat_dom, p_lat_seed, p_lat_fixer, p_lat_AM, p_lat_EM, nrow=6, labels="AUTO")
 p_lat
 save_plot("Latitude Figure.pdf", p_lat, base_height = 12, base_width=6)
+```
+
+### Map of legumes and ants in polygons
+
+We visualized the latitudinal distribution of each taxon (legumes and ants) to understand how these are distributed globally. This is to address a reviewer comment about whether our dataset is indeed "global."
+
+First, ant maps. 
+
+```{r Ant maps, eval=FALSE, warning=FALSE, message=FALSE}
+antmaps_native_df <- read_csv("GABI_Data_Release1.0_18012020.csv")
+antmaps_df <- antmaps_native_df[, c("valid_species_name", "bentity2_name")]
+
+#Merge with trait data
+antmaps_df$match_name <- gsub("\\.", "_", antmaps_df$valid_species_name)
+antmaps_df <- merge(antmaps_df, area, by.x="match_name", by.y="Phy")
+
+# Read the spatial polygons using sf
+ant_polygons <- st_read(dsn = 'Bentity2_shapefile_fullres/', layer = 'Bentity2_shapefile_fullres')
+
+# Rename the column in the spatial polygons dataset to match the merge column name
+colnames(ant_polygons)[colnames(ant_polygons) == 'BENTITY2_N'] <- 'bentity2_name'
+
+#EFNs
+species_counts <- antmaps_df %>%
+  group_by(bentity2_name, EFN) %>%
+  summarise(num_species = n_distinct(valid_species_name.x))
+
+# Merge the data with spatial polygons
+merged_data <- merge(ant_polygons, species_counts, by = 'bentity2_name', all.x = TRUE)
+
+# Plotting the variable on a world map
+#Ants that visit EFNs
+antmap1 <- ggplot() +
+  geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, EFN == 1), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\nvisit EFNs (no.)")+theme_cowplot()
+#save_plot("map1.png", antmap1, base_width=8)
+
+#Ants that do not visit EFNs
+antmap2 <- ggplot() +
+    geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, EFN == 0), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\ndo not visit EFNs (no.)")+theme_cowplot()
+#save_plot("map2.png", antmap2, base_width=8)
+
+efn_map <- plot_grid(antmap1, antmap2, labels="AUTO", align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("EFN_map.pdf", efn_map, base_width=8, base_height = 8)
+
+#Seed dispersal
+species_counts <- antmaps_df %>%
+  group_by(bentity2_name, Seed_Dispersal) %>%
+  summarise(num_species = n_distinct(valid_species_name.x))
+
+#Merge the data with spatial polygons
+merged_data <- merge(ant_polygons, species_counts, by = 'bentity2_name', all.x = TRUE)
+
+# Plotting the variable on a world map
+
+#Ants that disperse seeds
+antmap3 <- ggplot() +
+    geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, Seed_Dispersal == 1), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\ndisperse seeds (no.)")+theme_cowplot()
+#save_plot("map3.png", antmap3, base_width=8)
+
+#Ants that do not disperse seeds
+antmap4 <- ggplot() +
+    geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, Seed_Dispersal == 0), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\ndo not disperse seeds (no.)")+theme_cowplot()
+#save_plot("map4.png", antmap4, base_width=8)
+
+seed_map <- plot_grid(antmap3, antmap4, labels=c("C", "D"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("seed_map.pdf", seed_map, base_width=8, base_height = 8)
+
+#Domatia
+species_counts <- antmaps_df %>%
+  group_by(bentity2_name, Domatia) %>%
+  summarise(num_species = n_distinct(valid_species_name.x))
+
+#Merge the data with spatial polygons
+merged_data <- merge(ant_polygons, species_counts, by = 'bentity2_name', all.x = TRUE)
+
+# Plotting the variable on a world map
+
+#Ants that nest in domatia
+antmap5 <- ggplot() +
+    geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, Domatia == 1), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\nnest in domatia (no.)")+theme_cowplot()
+#save_plot("map5.png", antmap5, base_width=8)
+
+#Ants that do not nest in domatia
+antmap6 <- ggplot() +
+    geom_sf(data = ant_polygons, fill="black")+
+  geom_sf(data = subset(merged_data, Domatia == 0), aes(fill = num_species)) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Ant species that\ndo not nest in domatia (no.)")+theme_cowplot()
+#save_plot("map6.png", antmap6, base_width=8)
+
+antdom_map <- plot_grid(antmap5, antmap6, labels=c("E", "F"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("dom_map.pdf", antdom_map, base_width=8, base_height = 8)
+
+```
+
+Next up, legumes. 
+
+```{r Legume maps, message=FALSE, warning=FALSE}
+## Making a similar map for legumes
+
+# Read the .rds file
+legume_pol <- readRDS("legume_range_polygons_data.rds")
+#legume_range_df <- read.csv("legume_range_traits.csv")
+
+#Extract unique polygons
+#There is probably a better way to do this, but this works
+tmp <- data.frame(code = NULL, index = NULL)
+for (x in 1:length(legume_pol$polygon)) {
+  if(legume_pol$polygon[[x]]@data$Code %in% tmp$code) next()
+  tmp <- rbind((data.frame(code = legume_pol$polygon[[x]]@data$Code, index = x)), tmp)
+}
+unique_pols <- legume_pol[tmp$index, ]
+unique_pols <- cbind(unique_pols, tmp)
+
+#This is the base map
+ant_polygons <- st_read(dsn = 'Bentity2_shapefile_fullres/', layer = 'Bentity2_shapefile_fullres')
+base_legume_map <- ggplot()+geom_sf(data = ant_polygons, fill="black")+theme_cowplot()
+#+geom_sf(data=sf::st_as_sf(do.call(rbind, unique_pols$`polygon`)), fill="blue")
+
+# Extract codes for each legume species
+legume_pol$code<-NA
+for (x in 1:length(legume_pol$polygon)) {
+  legume_pol[x, "code"] <- legume_pol$polygon[[x]]@data$Code 
+}
+
+#Merge with trait data
+merged_legume <- sp::merge(legume_pol, legume_range_df, by.x="species", by.y="Phy", all.x=TRUE, all.y=TRUE,duplicateGeoms = TRUE)
+merged_legume <- as.data.frame(merged_legume)
+
+#EFNs
+# Calculate the number of unique species in each polygon
+lspecies_counts <- subset(merged_legume, introduced_status == "N") %>%
+  group_by(code, EFN) %>%
+    summarise(num_species = n_distinct(species))
+
+# Merge with unique polygons
+merge_EFN <- sp::merge(unique_pols, lspecies_counts, by.x="code", by.y="code")
+
+spatial_polygons <- do.call(rbind, merge_EFN$`polygon`)
+attribute_data <- merge_EFN[c("EFN", "num_species")]
+spatial_polygons_df <- SpatialPolygonsDataFrame(spatial_polygons, data = attribute_data, match.ID = F)
+spatial_polygons_sf <- sf::st_as_sf(spatial_polygons_df)
+
+EFN_N <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, EFN == 0), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species\nwithout EFNs (no.)")
+
+#save_plot("legumemap1.png", EFN_N, base_width=8)
+
+EFN_Y <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, EFN == 1), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species\nwith EFNs (no.)")
+
+#save_plot("legumemap2.png", EFN_Y, base_width=8)
+
+legumeefn_map <- plot_grid(EFN_Y, EFN_N, labels=c("A", "B"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("legume_efn_map.pdf",legumeefn_map, base_width=8, base_height = 8)
+
+#Domatia
+# Calculate the number of unique species in each polygon
+lspecies_counts <- subset(merged_legume, introduced_status == "N") %>%
+  group_by(code, Domatia) %>%
+    summarise(num_species = n_distinct(species))
+
+# Merge with unique polygons
+merge_dom <- sp::merge(unique_pols, lspecies_counts, by.x="code", by.y="code")
+
+spatial_polygons <- do.call(rbind, merge_dom$`polygon`)
+attribute_data <- merge_dom[c("Domatia", "num_species")]
+spatial_polygons_df <- SpatialPolygonsDataFrame(spatial_polygons, data = attribute_data, match.ID = F)
+spatial_polygons_sf <- sf::st_as_sf(spatial_polygons_df)
+
+Domatia_N <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, Domatia == 0), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species\nwithout domatia (no.)")
+
+#save_plot("legumemap3.png", Domatia_N, base_width=8)
+
+Domatia_Y <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, Domatia == 1), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species\nwith domatia (no.)")
+
+#save_plot("legumemap4.png", Domatia_Y, base_width=8)
+
+legumedom_map <- plot_grid(Domatia_Y, Domatia_N, labels=c("C", "D"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("legume_dom_map.pdf",legumedom_map , base_width=8, base_height = 8)
+
+#Nodules
+# Calculate the number of unique species in each polygon
+lspecies_counts <- subset(merged_legume, introduced_status == "N") %>%
+  group_by(code, fixer) %>%
+    summarise(num_species = n_distinct(species))
+
+# Merge with unique polygons
+merge_fix <- sp::merge(unique_pols, lspecies_counts, by.x="code", by.y="code")
+
+spatial_polygons <- do.call(rbind, merge_fix$`polygon`)
+attribute_data <- merge_fix[c("fixer", "num_species")]
+spatial_polygons_df <- SpatialPolygonsDataFrame(spatial_polygons, data = attribute_data, match.ID = F)
+spatial_polygons_sf <- sf::st_as_sf(spatial_polygons_df)
+
+fixer_N <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, fixer == 0), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Nodulating\nlegume species (no.)")
+#save_plot("legumemap5.png", fixer_N, base_width=8)
+
+fixer_Y <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, fixer == 1), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Non-nodulating\nlegume species (no.)")
+#save_plot("legumemap6.png", fixer_Y, base_width=8)
+
+legumefix_map <- plot_grid(fixer_Y, fixer_N, labels=c("E", "F"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("legume_fix_map.pdf",legumefix_map , base_width=8, base_height = 8)
+
+#AM fungi
+# Calculate the number of unique species in each polygon
+lspecies_counts <- subset(merged_legume, introduced_status == "N") %>%
+  group_by(code, AM) %>%
+    summarise(num_species = n_distinct(species))
+
+# Merge with unique polygons
+merge_AM <- sp::merge(unique_pols, lspecies_counts, by.x="code", by.y="code")
+
+spatial_polygons <- do.call(rbind, merge_AM$`polygon`)
+attribute_data <- merge_AM[c("AM", "num_species")]
+spatial_polygons_df <- SpatialPolygonsDataFrame(spatial_polygons, data = attribute_data, match.ID = F)
+spatial_polygons_sf <- sf::st_as_sf(spatial_polygons_df)
+
+AM_N <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, AM == "N"), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species that do\nnot associate with AM fungi (no.)")
+#save_plot("legumemap7.png", AM_N, base_width=8)
+
+AM_Y <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, AM == "Y"), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species that\n associate with AM fungi (no.)")
+#save_plot("legumemap8.png", AM_Y, base_width=8)
+
+legumeAM_map <- plot_grid(AM_Y, AM_N, labels=c("G", "H"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("legume_AM_map.pdf",legumeAM_map , base_width=8, base_height = 8)
+
+#EM fungi
+# Calculate the number of unique species in each polygon
+lspecies_counts <- subset(merged_legume, introduced_status == "N") %>%
+  group_by(code, EM) %>%
+    summarise(num_species = n_distinct(species))
+
+# Merge with unique polygons
+merge_EM <- sp::merge(unique_pols, lspecies_counts, by.x="code", by.y="code")
+
+spatial_polygons <- do.call(rbind, merge_EM$`polygon`)
+attribute_data <- merge_EM[c("EM", "num_species")]
+spatial_polygons_df <- SpatialPolygonsDataFrame(spatial_polygons, data = attribute_data, match.ID = F)
+spatial_polygons_sf <- sf::st_as_sf(spatial_polygons_df)
+
+EM_N <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, EM == "N"), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species that do\nnot associate with EM fungi (no.)")
+#save_plot("legumemap9.png", EM_N, base_width=8)
+
+EM_Y <- base_legume_map + geom_sf(data=subset(spatial_polygons_sf, EM == "Y"), aes(fill = num_species))+
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  labs(fill = "Legume species that\nassociate with EM fungi (no.)")
+#save_plot("legumemap10.png", EM_Y, base_width=8)
+
+legumeEM_map <- plot_grid(EM_Y, EM_N, labels=c("I", "J"), align = 'v', axis='lr', ncol = 1, nrow = 2)
+save_plot("legume_EM_map.pdf",legumeEM_map , base_width=8, base_height = 8)
 ```
