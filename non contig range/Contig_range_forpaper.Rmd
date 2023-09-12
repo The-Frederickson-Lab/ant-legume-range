@@ -1,0 +1,146 @@
+---
+title: "Non-contiguous range"
+author: "Megan Frederickson and Pooja Nathan"
+date: "03/01/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Calculating the non-contiguous introduced ranges for each ant species using a graphs approach 
+
+Load packages
+
+```{r Load packages, message=FALSE, warning=FALSE}
+#Load packages
+#install.packages("units")
+library(units)
+library(sf)
+library(terra)
+library(spData)
+library(sf)
+library(tidyverse) 
+library(lubridate)
+library(knitr)
+library(cowplot)
+library(car)
+library(lme4)
+library(rgdal)
+library(sp)
+library(raster)
+library(igraph)
+```
+
+Read in data
+
+```{r Load data}
+antmaps_df <- read_csv("Alien Ants_Global.csv")
+#acro <- read.csv("Acromyrmex.csv")
+```
+
+Calculate area of spatial polygons
+
+
+```{r Megan spatial polygons}
+ant_polygons <- shapefile('GABI_Data_Release1.0_18012020/Bentity2_shapefile_fullres/Bentity2_shapefile_fullres.shp') #Read in spatial polygons
+crs(ant_polygons) #Checking crs coordinates
+
+ant_list <- unique(antmaps_df[, "Phy"]) #Make a list of unique ant names
+ant_list$n_introduced_ranges <- NA #Initialize an empty column to store number of introduced ranges 
+
+#For each ant species (including subspecies)
+
+for(i in 1:length(unique(antmaps_df$Phy))){
+  #Extract ant name
+  ant <- as.character(unique(antmaps_df$Phy)[i])
+  #Subset metadata for that ant
+  assign(ant, subset(antmaps_df, Phy == ant))
+  
+  #If there is only one polygon, set number of introduced ranges to 1
+  #Seems like "Australia" in particular causes problems
+  if(length(unique(get(ant)$bentity2_name)) == 1) {
+    ant_list[ant_list$Phy == ant, "n_introduced_ranges"] = 1
+    next
+  }
+  
+  #Subset polygons for that ant
+  tmp <- subset(ant_polygons, BENTITY2_N %in% unique(get(ant)$bentity2_name))
+  tmp <- st_make_valid(st_as_sf(tmp))
+  
+  #This makes a map of the introduced range of each species
+  #plot(tmp) 
+
+  #Figure out which polygons touch each other 
+  #The result is a matrix showing if polygons touch (FALSE) or don't touch (TRUE) 
+  #for each pair of polygons
+  mt <- as.data.frame(st_disjoint(tmp, sparse=FALSE))
+  
+  #Not strictly necessary, but renaming the rows and columns by geographic names
+  colnames(mt) <- tmp$BENTITY2_N
+  rownames(mt) <- tmp$BENTITY2_N
+  
+  #Turn matrix into a graph
+  G <- as.undirected(graph.adjacency(as.matrix(!mt), weighted = T))
+  
+  #This plots the graph
+  #plot(G) 
+  
+  #Count the number of unconnected subgraphs (i.e., the number of non-contiguous ranges)
+  ant_list[ant_list$Phy == ant, "n_introduced_ranges"] <- count_components(G)
+}
+
+write.csv(ant_list, "Megan_ant_range_count_incl_subspecies.csv")
+
+#Exclude subspecies
+antmaps_df$Phy_no_sub <- word(antmaps_df$Phy, 1)
+
+ant_list <- unique(antmaps_df[, "Phy_no_sub"]) #Make a list of unique ant names
+ant_list$n_introduced_ranges <- NA #Initialize an empty column to store number of introduced ranges 
+
+#For each ant species (excluding subspecies)
+
+for(i in 1:length(unique(antmaps_df$Phy_no_sub))){
+  #Extract ant name
+  ant <- as.character(unique(antmaps_df$Phy_no_sub)[i])
+  #Subset metadata for that ant
+  assign(ant, subset(antmaps_df, Phy_no_sub == ant))
+  
+  #If there is only one polygon, set number of introduced ranges to 1
+  #Seems like "Australia" in particular causes problems
+  if(length(unique(get(ant)$bentity2_name)) == 1) {
+    ant_list[ant_list$Phy_no_sub == ant, "n_introduced_ranges"] = 1
+    next
+  }
+  
+  #Subset polygons for that ant
+  tmp <- subset(ant_polygons, BENTITY2_N %in% unique(get(ant)$bentity2_name))
+  tmp <- st_make_valid(st_as_sf(tmp))
+  
+  #This makes a map of the introduced range of each species
+  #plot(tmp) 
+
+  #Figure out which polygons touch each other 
+  #The result is a matrix showing if polygons touch (FALSE) or don't touch (TRUE) 
+  #for each pair of polygons
+  mt <- as.data.frame(st_disjoint(tmp, sparse=FALSE))
+  
+  #Not strictly necessary, but renaming the rows and columns by geographic names
+  colnames(mt) <- tmp$BENTITY2_N
+  rownames(mt) <- tmp$BENTITY2_N
+  
+  #Turn matrix into a graph
+  G <- as.undirected(graph.adjacency(as.matrix(!mt), weighted = T))
+  
+  #This plots the graph
+  #plot(G) 
+  
+  #Count the number of unconnected subgraphs (i.e., the number of non-contiguous ranges)
+  ant_list[ant_list$Phy_no_sub == ant, "n_introduced_ranges"] <- count_components(G)
+}
+
+write.csv(ant_list, "Megan_ant_range_count_no_subspecies.csv")
+```

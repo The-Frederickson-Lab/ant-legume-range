@@ -1362,6 +1362,7 @@ antmap2 <- ggplot() +
 
 efn_map <- plot_grid(antmap1, antmap2, labels="AUTO", align = 'v', axis='lr', ncol = 1, nrow = 2)
 save_plot("EFN_map.pdf", efn_map, base_width=8, base_height = 8)
+save_plot("EFN_map.png", efn_map, base_width=8, base_height = 8)
 
 #Seed dispersal
 species_counts <- antmaps_df %>%
